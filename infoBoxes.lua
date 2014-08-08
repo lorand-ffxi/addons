@@ -1,27 +1,30 @@
 _addon.name = 'infoBoxes'
 _addon.author = 'Lorand'
 _addon.commands = {'infoBoxes', 'ib'}
-_addon.version = '1.0'
+_addon.version = '1.0.1'
 
 require('sets')
+require('actions')
 local InfoBox = require('infoBox')
 
 local strat_charge_time = {[1]=240,[2]=120,[3]=80,[4]=60,[5]=48}
 
-local stratSettings = {pos = {x = -200, y = -20}, flags = {bottom = true, right = true}}
-local targetSettings = {pos = {x = -125, y = 250}, flags = {bottom = false, right = true}}
-local targHpSettings = {pos = {x = -125, y = 270}, flags = {bottom = false, right = true}}
-local targTpSettings = {pos = {x = -125, y = 290}, flags = {bottom = false, right = true}}
+local boxSettings = {}
+boxSettings.stratagems = {pos = {x = -200, y = -20}, flags = {bottom = true, right = true}}
+boxSettings.target = {pos = {x = -125, y = 250}, flags = {bottom = false, right = true}}
+boxSettings.targHp = {pos = {x = -125, y = 270}, flags = {bottom = false, right = true}}
+boxSettings.acc = {pos = {x = -125, y = -215}, flags = {bottom = true, right = true}}
 
 local boxes = {}
 local player
+local acc = {hits = 0, misses = 0}
 
 windower.register_event('load', 'login', function()
 	player = windower.ffxi.get_player()
-	boxes.stratagems = InfoBox.new(stratSettings, 'Stratagems')
-	boxes.target = InfoBox.new(targetSettings)
-	boxes.targHp = InfoBox.new(targHpSettings, 'HP')
-	boxes.targTp = InfoBox.new(targTpSettings, 'TP')
+	boxes.stratagems = InfoBox.new(boxSettings.stratagems, 'Stratagems')
+	boxes.target = InfoBox.new(boxSettings.target)
+	boxes.targHp = InfoBox.new(boxSettings.targHp, 'HP')
+	boxes.acc = InfoBox.new(boxSettings.acc, 'Acc')
 end)
 
 windower.register_event('logout', function()
@@ -36,6 +39,9 @@ windower.register_event('addon command', function(command,...)
 		windower.send_command('lua unload '.._addon.name..'; lua load '.._addon.name)
 	elseif command == 'unload' then
 		windower.send_command('lua unload '.._addon.name)
+	elseif command == 'reset' then
+		acc.hits = 0
+		acc.misses = 0
 	else
 		windower.add_to_chat(0, 'Error: Unable to parse valid command')
 	end
@@ -53,11 +59,15 @@ windower.register_event('prerender', function()
 		if target ~= nil then
 			boxes.target:updateContents(target.name)
 			boxes.targHp:updateContents(target.hpp..'%')
-			boxes.targTp:updateContents(target.tp)
 		else
 			boxes.target:hide()
 			boxes.targHp:hide()
-			boxes.targTp:hide()
+		end
+		
+		if (acc.hits ~= 0) or (acc.misses ~= 0) then
+			boxes.acc:updateContents(calcAcc())
+		else
+			boxes.acc:hide()
 		end
 	else
 		for _,box in pairs(boxes) do
@@ -65,6 +75,29 @@ windower.register_event('prerender', function()
 		end
 	end
 end)
+
+windower.register_event('action', function(raw_action)
+	local action = Action(raw_action)
+	if (action.raw.actor_id == player.id) and (action:get_category_string() == 'melee') then
+		for target in action:get_targets() do
+			for subaction in target:get_actions() do
+				if subaction.message == 1 or subaction.message == 67 then
+					acc.hits = acc.hits + 1
+				elseif subaction.message == 15 or subaction.message == 63 then
+					acc.misses = acc.misses + 1
+				end
+			end
+		end
+	end
+end)
+
+function calcAcc()
+	local swings = acc.hits + acc.misses
+	if swings == 0 then return '0%' end
+	local pct = acc.hits / swings
+	pct = math.floor(pct*10000)/100
+	return tostring(pct)..'%'
+end
 
 --[[
 	Calculates and returns the maximum number of SCH stratagems available for use.

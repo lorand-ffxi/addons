@@ -3,6 +3,15 @@ _addon.author = 'Lorand'
 _addon.command = 'onyd'
 _addon.version = '0.5'
 
+--[[
+	TODO:
+	- Turn back around after mob finishes using gaze attack
+	- Stun
+	- Target by <t>, <bt>, or /as <player>
+	- Interpret "<t>" as windower.ffxi.get_mob_by_target()
+	- Save/load settings
+--]]
+
 require('luau')
 res = require('resources')
 local rarr = string.char(129,168)
@@ -99,8 +108,9 @@ windower.register_event('incoming chunk', function(id, data)
 		
 		if takeAction then
 			if watchFor[mobAbil.id].stun then
+				windower.send_command('input /ja "Violent Flourish" <t>')
 				--windower.send_command('input '..stunCommand..' '..actor.name)
-				addonPrint('WARNING: '..mobAbil.en..' detected, but stunning has not yet been implemented!')
+				--addonPrint('WARNING: '..mobAbil.en..' detected, but stunning has not yet been implemented!')
 			elseif watchFor[mobAbil.id].turn then
 				addonPrint('Notice: Turning away - '..mobAbil.en..' was detected!')
 				windower.ffxi.turn(actor.heading)

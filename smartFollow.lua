@@ -3,6 +3,14 @@ _addon.author = 'Lorand'
 _addon.commands = {'smartFollow', 'sf'}
 _addon.version = '1.0.1 beta'
 
+--[[
+	TODO:
+	- Stop on dead / too far
+	- Toggle command
+	- Interpret "<t>" as windower.ffxi.get_mob_by_target()
+	- Save/load settings
+--]]
+
 require('luau')
 
 local followTarget = ''
