@@ -9,8 +9,12 @@ function Queue:pop()
 	return table.remove(self.q, 1)
 end
 
-function Queue:peek()
+function Queue:peekNext()
 	return self.q[1]
+end
+
+function Queue:peekLast()
+	return self.q[#self.q]
 end
 
 function Queue:append( el)
