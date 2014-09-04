@@ -1,26 +1,29 @@
 _addon.name = 'smartFollow'
 _addon.author = 'Lorand'
 _addon.commands = {'smartFollow', 'sf'}
-_addon.version = '1.0.1 beta'
+_addon.version = '2.0 beta'
 
 --[[
 	TODO:
 	- Stop on dead / too far
-	- Toggle command
-	- Interpret "<t>" as windower.ffxi.get_mob_by_target()
 	- Save/load settings
+	- Set distance based on yalms & handle conversion to x/y distance
 --]]
 
 require('luau')
+local Queue = require('queue')
+local Pos = require('position')
 
 local followTarget = ''
 local follow = false
 local followDistance = 2
 local stuck = 0
 local lastPos = {}
+local path = Queue.new()
 
 local quadrants = {NW = {-1, 1}, SW = {1, -1}, NE = {0, -1}, SE = {0, 1}}
 local compass = {N = -math.pi/2, S = math.pi/2, E = 0, W = math.pi, NW = -math.pi*3/4, NE = -math.pi*1/4, SW = math.pi*3/4, SE = math.pi*1/4}
+
 
 windower.register_event('addon command', function (command,...)
     command = command and command:lower() or 'help'
@@ -39,7 +42,11 @@ windower.register_event('addon command', function (command,...)
 	elseif command == 'face' then
 		face(args[1])
 	elseif command == 'follow' then
-		local tPos = getPosition(args[1])
+		local name = args[1]
+		if name == '<t>' then
+			name = windower.ffxi.get_mob_by_target().name
+		end
+		local tPos = getPosition(name)
 		if tPos ~= nil then
 			followTarget = args[1]
 			targetPos = tPos
@@ -67,6 +74,10 @@ windower.register_event('addon command', function (command,...)
 		else
 			windower.add_to_chat(166, '[smartFollow] Error: no follow target chosen')
 		end
+	elseif S{'toggle', 't'}:contains(command) then
+		if followTarget ~= nil then
+			follow = not follow
+		end
 	else
 		windower.add_to_chat(0, 'Error: Unknown command')
 	end
@@ -74,64 +85,89 @@ end)
 
 windower.register_event('prerender', function()
 	if follow and (followTarget ~= '') then
-		local dist = getDistance(followTarget)
-		if dist == nil then
-			follow = false
-			windower.ffxi.run(false)
-			windower.add_to_chat(0, '[smartFollow] Deactivated - could not find target')
-			return
-		end
-		
-		if dist > followDistance then
-		
-			local pos = getPosition()
-			if lastPos ~= {} then
-				if (pos.x == lastPos.x) and (pos.y == lastPos.y) then
-					stuck = stuck + 1
-				else
-					stuck = 0
-				end
-			end
-			lastPos = pos
-			
-			local phi = getFaceDir(followTarget)
-		
-			if stuck > 30 then			
-				local dx, dy = getDistancesXY(followTarget)
-				if (dx == nil) or (dy == nil) then return end
-				
-				local n,s,e,w = getNSEW(dx, dy)
-				dx = math.abs(dx)
-				dy = math.abs(dy)
-				
-				if (dy > dx) and (dx > 1) then
-					if n and e then		--Further North than East
-						phi = 0				-->Go East
-					elseif n and w then	--Further North than West
-						phi = math.pi		-->Go West
-					elseif s and e then	--Further South than East
-						phi = 0				-->Go East
-					elseif s and w then	--Further South than West
-						phi = math.pi		-->Go West
-					end
-				elseif (dx > dy) and (dy > 1) then
-					if n and e then		--Further East than North
-						phi = -math.pi/2	-->Go North
-					elseif n and w then	--Further West than North
-						phi = -math.pi/2	-->Go North
-					elseif s and e then	--Further East than South
-						phi = math.pi/2		-->Go South
-					elseif s and w then	--Further West than South
-						phi = math.pi/2		-->Go South
-					end
-				end
-			end
-			windower.ffxi.run(phi)
-		else
-			windower.ffxi.run(false)
-		end
+		followPath()
 	end
 end)
+
+function followTarget()
+	local dist = getDistance(followTarget)
+	if dist == nil then
+		follow = false
+		windower.ffxi.run(false)
+		windower.add_to_chat(0, '[smartFollow] Deactivated - could not find target')
+		return
+	end
+	
+	if dist > followDistance then
+		local pos = getPosition()
+		if lastPos ~= {} then
+			if (pos.x == lastPos.x) and (pos.y == lastPos.y) then
+				stuck = stuck + 1
+			else
+				stuck = 0
+			end
+		end
+		lastPos = pos
+		
+		local phi = getFaceDir(followTarget)
+	
+		if stuck > 30 then			
+			local dx, dy = getDistancesXY(followTarget)
+			if (dx == nil) or (dy == nil) then return end
+			
+			local n,s,e,w = getNSEW(dx, dy)
+			dx = math.abs(dx)
+			dy = math.abs(dy)
+			
+			if (dy > dx) and (dx > 1) then
+				if n and e then		--Further North than East
+					phi = 0				-->Go East
+				elseif n and w then	--Further North than West
+					phi = math.pi		-->Go West
+				elseif s and e then	--Further South than East
+					phi = 0				-->Go East
+				elseif s and w then	--Further South than West
+					phi = math.pi		-->Go West
+				end
+			elseif (dx > dy) and (dy > 1) then
+				if n and e then		--Further East than North
+					phi = -math.pi/2	-->Go North
+				elseif n and w then	--Further West than North
+					phi = -math.pi/2	-->Go North
+				elseif s and e then	--Further East than South
+					phi = math.pi/2		-->Go South
+				elseif s and w then	--Further West than South
+					phi = math.pi/2		-->Go South
+				end
+			end
+		end
+		windower.ffxi.run(phi)
+	else
+		windower.ffxi.run(false)
+	end
+end
+
+function followPath()
+	--Record target's position as a waypoint
+	local targPos = getPosition(followTarget)
+	local lastPos = path:getLast()
+	if not targPos:equals(lastPos) then
+		path:add(targPos)
+	end
+	
+	--Advance to the next waypoint if far enough away
+	local currentPos = getPosition()
+	local dist = currentPos:getDistance(path:getFirst())
+	if dist > followDistance then
+		local npos = path:getNext()
+		local dx = currentPos:x() - npos:x()
+		local dy = currentPos:y() - npos:y()
+		local phi = getFaceDirection(dx, dy)
+		windower.ffxi.run(phi)
+	else
+		windower.ffxi.run(false)
+	end
+end
 
 --[[
 	Turn to face the given entity
@@ -148,7 +184,6 @@ function face(name)
 		windower.ffxi.turn(compass[name])
 	end
 end
-
 
 --[[
 	Get the difference in x and y coordinates between the player and the given target
@@ -243,7 +278,7 @@ function getPosition(name)
 		mobPos.x = mobChar.x
 		mobPos.y = mobChar.y
 		mobPos.z = mobChar.z
-		return mobPos
+		return Pos.new(mobPos)
 	end
 	return nil
 end
