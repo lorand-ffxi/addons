@@ -1,15 +1,7 @@
 local Pos = {}
-Pos.__index = Pos
-
-setmetatable(Pos, {
-	__call = function(cls, ...)
-		return cls.new(...)
-	end
-})
 
 function Pos.new(...)
-	local self = setmetatable({}, Pos)
-	self.pos = {}
+	local self = {pos={}}
 	
 	local tempPos = {}
 	local args = {...}
@@ -19,10 +11,10 @@ function Pos.new(...)
 		tempPos = args
 	end
 	
-	self.pos.x = tempPos.x or tempPos[1]
-	self.pos.y = tempPos.y or tempPos[2]
-	self.pos.z = tempPos.z or tempPos[3]
-	return self
+	self.pos.x = tempPos.x or tempPos[1] or 0
+	self.pos.y = tempPos.y or tempPos[2] or 0
+	self.pos.z = tempPos.z or tempPos[3] or 0
+	return setmetatable(self, {__index = Pos, __eq = Pos.equals})
 end
 
 function Pos:x()
@@ -48,3 +40,5 @@ function Pos:getDistance(other)
 	local dy = self.pos.y - other:y()
 	return math.sqrt((dx^2)+(dy^2))
 end
+
+return Pos
