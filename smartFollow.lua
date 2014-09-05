@@ -1,7 +1,7 @@
 _addon.name = 'smartFollow'
 _addon.author = 'Lorand'
 _addon.commands = {'smartFollow', 'sf'}
-_addon.version = '2.2 beta'
+_addon.version = '2.21'
 
 --[[
 	TODO:
@@ -16,10 +16,7 @@ local Pos = require('position')
 
 local followTarget = false
 local follow = false
-local followDistance = 2
-local lastPos = false
 local path = Queue.new()
-
 local lastTime = 0
 
 local quadrants = {NW = {-1, 1}, SW = {1, -1}, NE = {0, -1}, SE = {0, 1}}
@@ -37,8 +34,6 @@ windower.register_event('addon command', function (command,...)
 	elseif command == 'reset' then
 		followTarget = nil
 		follow = false
-		followDistance = 2
-		lastPos = nil
 	elseif command == 'face' then
 		face(args[1])
 	elseif command == 'follow' then
@@ -52,14 +47,6 @@ windower.register_event('addon command', function (command,...)
 			windower.add_to_chat(0, '[smartFollow] Now following '..followTarget)
 		else
 			windower.add_to_chat(166, '[smartFollow] Error: unable to follow '..tostring(args[1]))
-		end
-	elseif S{'distance', 'dist'}:contains(command) then
-		local d = tonumber(args[1])
-		if d and (0 < d) and (d < 30) then
-			followDistance = d
-			windower.add_to_chat(0, '[smartFollow] Follow distance set to '..followDistance)
-		else
-			windower.add_to_chat(166, '[smartFollow] Error: invalid follow distance.')
 		end
 	elseif S{'stop', 'pause', 'end', 'off'}:contains(command) then
 		follow = false
@@ -164,23 +151,6 @@ function face(name)
 	elseif compass[name] then
 		windower.ffxi.turn(compass[name])
 	end
-end
-
---[[
-	Determine whether or not the given positions are different.
-	If only one parameter is given, then it compares the given
-	position with the result of calling getPosition().
---]]
-function isMoving(pos1, pos2)
-	if not pos1 then return nil end
-	pos2 = pos2 and pos2 or getPosition()
-	
-	local dx = math.abs(pos1.x - pos2.x)
-	local dy = math.abs(pos1.y - pos2.y)
-	local dz = math.abs(pos1.z - pos2.z)
-	local isMoving = ((dx + dy + dz) ~= 0)
-	
-	return isMoving
 end
 
 -----------------------------------------------------------------------------------------------------------
