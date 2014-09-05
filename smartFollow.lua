@@ -1,7 +1,7 @@
 _addon.name = 'smartFollow'
 _addon.author = 'Lorand'
 _addon.commands = {'smartFollow', 'sf'}
-_addon.version = '2.21'
+_addon.version = '2.3'
 
 --[[
 	TODO:
@@ -17,7 +17,8 @@ local Pos = require('position')
 local followTarget = false
 local follow = false
 local path = Queue.new()
-local lastTime = 0
+local lastRec = 0
+local lastMove = 0
 
 local quadrants = {NW = {-1, 1}, SW = {1, -1}, NE = {0, -1}, SE = {0, 1}}
 local compass = {N = -math.pi/2, S = math.pi/2, E = 0, W = math.pi, NW = -math.pi*3/4, NE = -math.pi*1/4, SW = math.pi*3/4, SE = math.pi*1/4}
@@ -84,15 +85,18 @@ windower.register_event('prerender', function()
 	
 	if follow and followee then
 		local now = os.clock()
-		if (now - lastTime) > 0.4 then
-			lastTime = now
-			
+		
+		if (now - lastRec) > 0.3 then
+			lastRec = now
 			--Add a new waypoint if the followee has travelled far enough
 			local targPos = getPosition(followTarget)
 			if targPos ~= path:peekLast() then
 				path:append(targPos)
 			end
-			
+		end
+		
+		if (now - lastMove) > 0.4 then
+			lastMove = now
 			--If more than one waypoint is queued, then go to the next one.
 			if path:size() > 1 then
 				windower.ffxi.run(getDirRadian(getPosition(), path:pop()))
