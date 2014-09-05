@@ -1,13 +1,24 @@
 local texts = require('texts')
 
-local InfoBox = {}
+local InfoBox = {
+	visible = true,
+	settings = nil,
+	tb_name = 'infoBoxes'
+}
+InfoBox.__index = InfoBox
+
+setmetatable(InfoBox, {
+	__call = function(cls, ...)
+		return cls.new(...)
+	end
+})
 
 function InfoBox.new(settings, label)
-	local self = {}
+	local self = setmetatable({}, InfoBox)
 	self.settings = settings
 	self.text = texts.new(self.settings)
 	self.label = label
-	return setmetatable(self, {__index = InfoBox})
+	return self
 end
 
 function InfoBox:setPos(posx, posy)
