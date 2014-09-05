@@ -1,7 +1,7 @@
 _addon.name = 'smartFollow'
 _addon.author = 'Lorand'
 _addon.commands = {'smartFollow', 'sf'}
-_addon.version = '2.1 beta'
+_addon.version = '2.2 beta'
 
 --[[
 	TODO:
@@ -19,6 +19,8 @@ local follow = false
 local followDistance = 2
 local lastPos = false
 local path = Queue.new()
+
+local lastTime = 0
 
 local quadrants = {NW = {-1, 1}, SW = {1, -1}, NE = {0, -1}, SE = {0, 1}}
 local compass = {N = -math.pi/2, S = math.pi/2, E = 0, W = math.pi, NW = -math.pi*3/4, NE = -math.pi*1/4, SW = math.pi*3/4, SE = math.pi*1/4}
@@ -81,51 +83,38 @@ end)
 
 windower.register_event('prerender', function()
 	local player = windower.ffxi.get_player()
-	if player then
-		if S{2,3}:contains(player.status_id) then
-			follow = false
-			windower.ffxi.run(false)
-		end
-	else
+	if follow and player and S{2,3}:contains(player.status_id) then
 		follow = false
 		windower.ffxi.run(false)
+	elseif follow and (not player) then
+		follow = false
 	end
-	if follow and followTarget then
-		followPath()
+
+	local followee = nil
+	if followTarget then
+		followee = windower.ffxi.get_mob_by_name(followTarget)
+	end
+	
+	if follow and followee then
+		local now = os.clock()
+		if (now - lastTime) > 0.4 then
+			lastTime = now
+			
+			--Add a new waypoint if the followee has travelled far enough
+			local targPos = getPosition(followTarget)
+			if targPos ~= path:peekLast() then
+				path:append(targPos)
+			end
+			
+			--If more than one waypoint is queued, then go to the next one.
+			if path:size() > 1 then
+				windower.ffxi.run(getDirRadian(getPosition(), path:pop()))
+			else
+				windower.ffxi.run(false)
+			end
+		end
 	end
 end)
-
-function followPath()
-	--Record target's position as a waypoint
-	local targPos = getPosition(followTarget)
-	if not targPos then
-		follow = false
-		windower.ffxi.run(false)
-		return
-	end
-	local lastPos = path:peekLast()
-	if targPos ~= lastPos then
-		path:append(targPos)
-	end
-	
-	--Obtain current and next positions
-	local currentPos = getPosition()
-	local nextPos = path:peekNext()
-	
-	--Remove the current position from the path queue if it has been reached
-	if currentPos == nextPos then
-		path:pop()
-		nextPos = path:peekNext()
-	end
-	
-	--Determine how far away the next waypoint is, and run towards it if it is far enough away
-	local dist = currentPos:getDistance(nextPos)
-	if dist > followDistance then
-		windower.ffxi.run(getDirRadian(currentPos, nextPos))
-	else
-		windower.ffxi.run(false)
-	end
-end
 
 --[[
 	Get the position of the entity with the given name, or own

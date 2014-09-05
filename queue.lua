@@ -13,6 +13,16 @@ function Queue:peekNext()
 	return self.q[1]
 end
 
+function Queue:peekAhead(n)
+	n = n or 2
+	while n > 1 do
+		if not self.q[n] then
+			n = n - 1
+		end
+	end
+	return self.q[n]
+end
+
 function Queue:peekLast()
 	return self.q[#self.q]
 end

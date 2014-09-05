@@ -14,7 +14,7 @@ function Pos.new(...)
 	self.pos.x = tempPos.x or tempPos[1] or 0
 	self.pos.y = tempPos.y or tempPos[2] or 0
 	self.pos.z = tempPos.z or tempPos[3] or 0
-	return setmetatable(self, {__index = Pos, __eq = Pos.equals})
+	return setmetatable(self, {__index = Pos, __eq = Pos.equals, __tostring = Pos.toString})
 end
 
 function Pos:x()
@@ -39,6 +39,10 @@ function Pos:getDistance(other)
 	local dx = self.pos.x - other:x()
 	local dy = self.pos.y - other:y()
 	return math.sqrt((dx^2)+(dy^2))
+end
+
+function Pos:toString()
+	return '('..self.pos.x..', '..self.pos.y..', '..self.pos.z..')'
 end
 
 return Pos
