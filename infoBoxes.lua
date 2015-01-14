@@ -1,7 +1,7 @@
 _addon.name = 'infoBoxes'
 _addon.author = 'Lorand'
 _addon.commands = {'infoBoxes', 'ib'}
-_addon.version = '1.0.1'
+_addon.version = '1.0.2'
 
 require('sets')
 require('actions')
@@ -78,13 +78,15 @@ end)
 
 windower.register_event('action', function(raw_action)
 	local action = Action(raw_action)
-	if (action.raw.actor_id == player.id) and (action:get_category_string() == 'melee') then
-		for target in action:get_targets() do
-			for subaction in target:get_actions() do
-				if subaction.message == 1 or subaction.message == 67 then
-					acc.hits = acc.hits + 1
-				elseif subaction.message == 15 or subaction.message == 63 then
-					acc.misses = acc.misses + 1
+	if action ~= nil then
+		if (action.raw.actor_id == player.id) and (action:get_category_string() == 'melee') then
+			for target in action:get_targets() do
+				for subaction in target:get_actions() do
+					if subaction.message == 1 or subaction.message == 67 then
+						acc.hits = acc.hits + 1
+					elseif subaction.message == 15 or subaction.message == 63 then
+						acc.misses = acc.misses + 1
+					end
 				end
 			end
 		end
