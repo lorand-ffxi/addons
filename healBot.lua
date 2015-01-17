@@ -1,14 +1,18 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '1.2'
+_addon.version = '1.3'
 
+require('luau')
+rarr = string.char(129,168)
 res = require('resources')
 require 'healBot_curing'
+require 'healBot_follow'
 
-local active = false
+active = false
 actionDelay = 0.8
-rarr = string.char(129,168)
+followTarget = nil
+follow = false
 
 windower.register_event('addon command', function (command,...)
     command = command and command:lower() or 'help'
@@ -23,6 +27,18 @@ windower.register_event('addon command', function (command,...)
 	elseif S{'stop','end','off'}:contains(command) then
 		active = false
 		printStatus()
+	elseif command == 'follow' then
+		local name = args[1]
+		if S{'off', 'end', 'false'}:contains(name) then
+			follow = false
+		else
+			if name == '<t>' then
+				name = windower.ffxi.get_mob_by_target().name
+			end
+			followTarget = name
+			follow = true
+			windower.add_to_chat(0, 'Now following '..followTarget)
+		end
 	elseif command == 'status' then
 		printStatus()
 	elseif command == 'info' then
@@ -46,17 +62,31 @@ windower.register_event('load', function()
 end)
 
 windower.register_event('prerender', function()
-	if active then
-		local now = os.clock()
-		if (now - lastAction) >= actionDelay then
-			actionDelay = 0.5
-			local player = windower.ffxi.get_player()
-			if (player ~= nil) and S{0,1}:contains(player.status) then	--Assert player is idle or engaged
-				cureSomeone(player)
+	local now = os.clock()
+	if (now - lastAction) >= actionDelay then
+		local player = windower.ffxi.get_player()
+		if (player ~= nil) and S{0,1}:contains(player.status) then	--Assert player is idle or engaged	
+			local moving = false
+			
+			if follow then
+				actionDelay = 0.08
+				if not needToMove(followTarget) then
+					windower.ffxi.run(false)
+				else
+					moveTowards(followTarget)
+					moving = true
+				end
 			end
-			lastAction = now
-		end
-	end
+			
+			if active and (not moving) then
+				actionDelay = 0.3				
+				if not moving then
+					cureSomeone(player)
+				end
+			end
+		end	--player status check
+		lastAction = now
+	end	--time check
 end)
 
 function isTooFar(name)
