@@ -57,7 +57,12 @@ windower.register_event('prerender', function()
 		
 		local target = windower.ffxi.get_mob_by_target()
 		if target ~= nil then
-			boxes.target:updateContents(target.name)
+			local target_t = windower.ffxi.get_mob_by_index(target.target_index)
+			if target_t ~= nil then
+				boxes.target:updateContents(target.name..' → '..target_t.name)
+			else
+				boxes.target:updateContents(target.name)
+			end
 			boxes.targHp:updateContents(target.hpp..'%')
 		else
 			boxes.target:hide()
