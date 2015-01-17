@@ -1,6 +1,28 @@
+minCureTier = 1
 potencies = {[1]=87, [2]=199, [3]=438, [4]=816, [5]=1056, [6]=1311}
 cnums = {['Cure'] = 1, ['Cure II'] = 2, ['Cure III'] = 3, ['Cure IV'] = 4, ['Cure V'] = 5, ['Cure VI'] = 6}
 ncures = {'Cure','Cure II','Cure III','Cure IV','Cure V','Cure VI'}
+npcs = S{'Joachim', 'Ulmia', 'Cherukiki'}
+
+function cureSomeone(player)
+	local hpTable = getMissingHps()
+	local curee = getMemberWithMostHpMissing(hpTable)
+	if (curee ~= nil) and (not isTooFar(curee.name)) then
+		local ncnum = get_tier_for_hp(curee.missing)
+		if ncnum >= minCureTier then
+			local spell = res.spells:with('en', ncures[ncnum])
+			if (windower.ffxi.get_spell_recasts()[spell.recast_id] == 0) then
+				windower.add_to_chat(0, "HealBot: "..spell.en.." "..rarr.." "..curee.name.."("..curee.missing..")")
+				if (player.vitals.mp >= spell.mp_cost) then
+					windower.send_command('input '..spell.prefix..' "'..spell.en..'" '..curee.name)
+					actionDelay = spell.cast_time
+				end
+			else
+				actionDelay = 0.3
+			end
+		end
+	end
+end
 
 function determineHighestCureTier()
 	local highestTier = 0
