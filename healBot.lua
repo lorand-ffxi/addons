@@ -1,18 +1,16 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '1.0'
+_addon.version = '1.2'
 
 res = require('resources')
-active = false
-actionDelay = 0.8
+require 'healBot_curing'
 
+local active = false
+local actionDelay = 0.8
+local minCureTier = 1
 local rarr = string.char(129,168)
-
-vars = {}
-vars.CurePotency = {[1]=87, [2]=199, [3]=438, [4]=816, [5]=1056, [6]=1311}
-cnums = {['Cure'] = 1, ['Cure II'] = 2, ['Cure III'] = 3, ['Cure IV'] = 4, ['Cure V'] = 5, ['Cure VI'] = 6}
-ncures = {'Cure','Cure II','Cure III','Cure IV','Cure V','Cure VI'}
+local npcs = S{'Joachim', 'Ulmia', 'Cherukiki'}
 
 windower.register_event('addon command', function (command,...)
     command = command and command:lower() or 'help'
@@ -39,13 +37,8 @@ end)
 function activate()
 	local player = windower.ffxi.get_player()
 	if player ~= nil then
-		active = true
-		if player.main_job == "RDM" then		maxCureTier = 4
-		elseif player.main_job == "SCH" then	maxCureTier = 5
-		elseif player.main_job == "WHM" then	maxCureTier = 6
-		else
-			active = false
-		end
+		maxCureTier = determineHighestCureTier()
+		active = (maxCureTier > 0)
 	end
 	printStatus()
 end
@@ -62,9 +55,9 @@ windower.register_event('prerender', function()
 			local player = windower.ffxi.get_player()
 			local hpTable = getMissingHps()
 			local curee = getMemberWithMostHpMissing(hpTable)
-			if (player ~= nil) and (curee ~= nil) then
+			if (player ~= nil) and (curee ~= nil) and (not isTooFar(curee.name)) then
 				local ncnum = get_tier_for_hp(curee.missing)
-				if ncnum >= 3 then
+				if ncnum >= minCureTier then
 					local spell = res.spells:with('en', ncures[ncnum])
 					if (windower.ffxi.get_spell_recasts()[spell.recast_id] == 0) then
 						windower.add_to_chat(0, "HealBot: "..spell.en.." "..rarr.." "..curee.name.."("..curee.missing..")")
@@ -82,53 +75,12 @@ windower.register_event('prerender', function()
 	end
 end)
 
-function getMemberWithMostHpMissing(party)
-	local curee = {['missing']=0}
-	for n,p in pairs(party) do
-		if (p.missing > curee.missing) and (p.hpp < 95) then
-			curee.name = n
-			curee.missing = p.missing
-		end
+function isTooFar(name)
+	local target = windower.ffxi.get_mob_by_name(name)
+	if target ~= nil then
+		return target.distance > 432	--20.8 in game
 	end
-	if curee.missing > 0 then
-		return curee
-	else
-		return nil
-	end
-end
-
---Returns a table with party members and how much hp they are missing
-function getMissingHps()
-	local pt = windower.ffxi.get_party()
-	local pty = {pt.p0, pt.p1, pt.p2, pt.p3, pt.p4, pt.p5}
-	local party = {}
-	for _,player in pairs(pty) do
-		if player ~= nil then
-			local hpMissing = math.ceil((player.hp/(player.hpp/100)) - player.hp)
-			party[player.name] = {['missing']=hpMissing, ['hpp']=player.hpp}
-		end
-	end
-	return party
-end
-
-function get_tier_for_hp(hpMissing)
-	local ncnum = maxCureTier
-	local potency = vars.CurePotency[ncnum]
-	if hpMissing < potency then
-		local pdelta = potency - vars.CurePotency[ncnum-1]
-		local threshold = potency - (pdelta * 0.5)
-		while hpMissing < threshold do
-			ncnum = ncnum - 1
-			if ncnum > 1 then
-				potency = vars.CurePotency[ncnum]
-				pdelta = potency - vars.CurePotency[ncnum-1]
-				threshold = potency - (pdelta * 0.5)
-			else
-				threshold = 0
-			end
-		end
-	end
-	return ncnum
+	return true
 end
 
 function printInfo()

@@ -1,0 +1,76 @@
+potencies = {[1]=87, [2]=199, [3]=438, [4]=816, [5]=1056, [6]=1311}
+cnums = {['Cure'] = 1, ['Cure II'] = 2, ['Cure III'] = 3, ['Cure IV'] = 4, ['Cure V'] = 5, ['Cure VI'] = 6}
+ncures = {'Cure','Cure II','Cure III','Cure IV','Cure V','Cure VI'}
+
+function determineHighestCureTier()
+	local highestTier = 0
+	local player = windower.ffxi.get_player()
+	local m_id = player.main_job_id
+	local s_id = player.sub_job_id
+	local m_lvl = player.main_job_level
+	local s_lvl = player.sub_job_level
+	for id, avail in pairs(windower.ffxi.get_spells()) do
+		if avail then
+			local spell = res.spells[id]
+			if S(ncures):contains(spell.en) then
+				if ((spell.levels[m_id] ~= nil) and (spell.levels[m_id] <= m_lvl)) or ((spell.levels[s_id] ~= nil) and (spell.levels[s_id] <= s_lvl)) then
+					local tier = cnums[spell.en]
+					if tier > highestTier then
+						highestTier = tier
+					end
+				end				
+			end
+		end
+	end
+	windower.add_to_chat(0, highestTier)
+	return highestTier
+end
+
+function get_tier_for_hp(hpMissing)
+	local ncnum = maxCureTier
+	local potency = potencies[ncnum]
+	if hpMissing < potency then
+		local pdelta = potency - potencies[ncnum-1]
+		local threshold = potency - (pdelta * 0.5)
+		while hpMissing < threshold do
+			ncnum = ncnum - 1
+			if ncnum > 1 then
+				potency = potencies[ncnum]
+				pdelta = potency - potencies[ncnum-1]
+				threshold = potency - (pdelta * 0.5)
+			else
+				threshold = 0
+			end
+		end
+	end
+	return ncnum
+end
+
+function getMemberWithMostHpMissing(party)
+	local curee = {['missing']=0}
+	for n,p in pairs(party) do
+		if (p.missing > curee.missing) and (p.hpp < 95) and (not npcs:contains(n)) then
+			curee.name = n
+			curee.missing = p.missing
+		end
+	end
+	if curee.missing > 0 then
+		return curee
+	else
+		return nil
+	end
+end
+
+--Returns a table with party members and how much hp they are missing
+function getMissingHps()
+	local pt = windower.ffxi.get_party()
+	local pty = {pt.p0, pt.p1, pt.p2, pt.p3, pt.p4, pt.p5}
+	local party = {}
+	for _,player in pairs(pty) do
+		if player ~= nil then
+			local hpMissing = math.ceil((player.hp/(player.hpp/100)) - player.hp)
+			party[player.name] = {['missing']=hpMissing, ['hpp']=player.hpp}
+		end
+	end
+	return party
+end
