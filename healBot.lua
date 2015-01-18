@@ -1,11 +1,12 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '1.3'
+_addon.version = '1.4'
 
 require('luau')
 rarr = string.char(129,168)
 res = require('resources')
+require 'healBot_buffing'
 require 'healBot_curing'
 require 'healBot_follow'
 
@@ -13,6 +14,8 @@ active = false
 actionDelay = 0.8
 followTarget = nil
 follow = false
+
+buffList = {}
 
 windower.register_event('addon command', function (command,...)
     command = command and command:lower() or 'help'
@@ -27,6 +30,34 @@ windower.register_event('addon command', function (command,...)
 	elseif S{'stop','end','off'}:contains(command) then
 		active = false
 		printStatus()
+	elseif command == 'buff' then
+		local targetName = args[1] and args[1] or ''
+		local spellA = args[2] and args[2] or ''
+		local spellB = args[3] and ' '..args[3] or ''
+		local spellName = spellA..spellB
+		
+		local target = windower.ffxi.get_mob_by_name(targetName)
+		if target == nil then
+			windower.add_to_chat(0, 'Invalid buff target: '..targetName)
+			return
+		end
+		
+		local spell = res.spells:with('en', spellName)
+		if spell == nil then
+			windower.add_to_chat(0, 'Invalid spell name: '..spellName)
+			return
+		end
+		if not canCast(spell) then
+			windower.add_to_chat(0, 'Unable to cast spell: '..spellName)
+			return
+		end
+		
+		if buffList[target.name] == nil then
+			buffList[target.name] = {}
+		end
+		buffList[target.name][spell.en] = {['spell']=spell}
+		--table.insert(buffList[target.name], {['buff']=spell.en, ['duration']=spell.duration, ['cast_time']=spell.cast_time})
+		windower.add_to_chat(0, 'Will maintain buff: '..spell.en..' '..rarr..' '..target.name)
 	elseif command == 'follow' then
 		local name = args[1]
 		if S{'off', 'end', 'false'}:contains(name) then
@@ -48,6 +79,15 @@ windower.register_event('addon command', function (command,...)
 	end
 end)
 
+function canCast(spell)
+	local player = windower.ffxi.get_player()
+	if (player == nil) or (spell == nil) then return false end
+	local mainCanCast = (spell.levels[player.main_job_id] ~= nil) and (spell.levels[player.main_job_id] <= player.main_job_level)
+	local subCanCast = (spell.levels[player.sub_job_id] ~= nil) and (spell.levels[player.sub_job_id] <= player.sub_job_level)
+	local spellAvailable = windower.ffxi.get_spells()[spell.id]
+	return spellAvailable and (mainCanCast or subCanCast)
+end
+
 function activate()
 	local player = windower.ffxi.get_player()
 	if player ~= nil then
@@ -67,9 +107,9 @@ windower.register_event('prerender', function()
 		local player = windower.ffxi.get_player()
 		if (player ~= nil) and S{0,1}:contains(player.status) then	--Assert player is idle or engaged	
 			local moving = false
+			actionDelay = 0.08
 			
 			if follow then
-				actionDelay = 0.08
 				if not needToMove(followTarget) then
 					windower.ffxi.run(false)
 				else
@@ -78,10 +118,11 @@ windower.register_event('prerender', function()
 				end
 			end
 			
-			if active and (not moving) then
-				actionDelay = 0.3				
+			if active and (not moving) then			
 				if not moving then
-					cureSomeone(player)
+					if not cureSomeone(player) then
+						checkBuffs(player, buffList)
+					end
 				end
 			end
 		end	--player status check

@@ -12,30 +12,25 @@ function cureSomeone(player)
 		if ncnum >= minCureTier then
 			local spell = res.spells:with('en', ncures[ncnum])
 			if (windower.ffxi.get_spell_recasts()[spell.recast_id] == 0) then
-				windower.add_to_chat(0, "HealBot: "..spell.en.." "..rarr.." "..curee.name.."("..curee.missing..")")
 				if (player.vitals.mp >= spell.mp_cost) then
+					windower.add_to_chat(0, "HealBot: "..spell.en.." "..rarr.." "..curee.name.."("..curee.missing..")")
 					windower.send_command('input '..spell.prefix..' "'..spell.en..'" '..curee.name)
 					actionDelay = spell.cast_time
+					return true
 				end
-			else
-				actionDelay = 0.3
 			end
 		end
 	end
+	return false
 end
 
 function determineHighestCureTier()
 	local highestTier = 0
-	local player = windower.ffxi.get_player()
-	local m_id = player.main_job_id
-	local s_id = player.sub_job_id
-	local m_lvl = player.main_job_level
-	local s_lvl = player.sub_job_level
 	for id, avail in pairs(windower.ffxi.get_spells()) do
 		if avail then
 			local spell = res.spells[id]
 			if S(ncures):contains(spell.en) then
-				if ((spell.levels[m_id] ~= nil) and (spell.levels[m_id] <= m_lvl)) or ((spell.levels[s_id] ~= nil) and (spell.levels[s_id] <= s_lvl)) then
+				if canCast(spell) then
 					local tier = cnums[spell.en]
 					if tier > highestTier then
 						highestTier = tier
