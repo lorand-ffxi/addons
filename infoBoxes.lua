@@ -6,7 +6,7 @@ _addon.version = '1.0.2'
 require('sets')
 require('actions')
 local InfoBox = require('infoBox')
-
+start_time = os.time()
 local strat_charge_time = {[1]=240,[2]=120,[3]=80,[4]=60,[5]=48}
 
 local boxSettings = {}
@@ -14,6 +14,9 @@ boxSettings.stratagems = {pos = {x = -200, y = -20}, flags = {bottom = true, rig
 boxSettings.target = {pos = {x = -125, y = 250}, flags = {bottom = false, right = true}}
 boxSettings.targHp = {pos = {x = -125, y = 270}, flags = {bottom = false, right = true}}
 boxSettings.acc = {pos = {x = -125, y = -215}, flags = {bottom = true, right = true}}
+boxSettings.speed = {pos = {x = -60, y = -20}, flags = {bottom = true, right = true}}
+boxSettings.dist = {pos = {x = -178, y = 21}, text = {font='Arial', size = 14}, flags = {right = true}}
+boxSettings.zt = {pos = {x = -100, y = 0}, text = {font='Arial', size = 12}, flags = {right = true}}
 
 local boxes = {}
 local player
@@ -25,10 +28,17 @@ windower.register_event('load', 'login', function()
 	boxes.target = InfoBox.new(boxSettings.target)
 	boxes.targHp = InfoBox.new(boxSettings.targHp, 'HP')
 	boxes.acc = InfoBox.new(boxSettings.acc, 'Acc')
+	boxes.speed = InfoBox.new(boxSettings.speed)
+	boxes.dist = InfoBox.new(boxSettings.dist)
+	boxes.zt = InfoBox.new(boxSettings.zt)
 end)
 
 windower.register_event('logout', function()
 	player = nil
+end)
+
+windower.register_event('zone change', function(new_zone, old_zone)
+	start_time = os.time()
 end)
 
 windower.register_event('addon command', function(command,...)
@@ -49,6 +59,15 @@ end)
 
 windower.register_event('prerender', function()
 	if player then
+		boxes.zt:updateContents(os.date('!%H:%M:%S', os.time()-start_time))
+	
+		local me = windower.ffxi.get_mob_by_target('me')
+		if me then
+			boxes.speed:updateContents('%+.0f %%':format(100*((me.movement_speed/5)-1)))
+		else
+			boxes.speed:hide()
+		end
+		
 		if S{player.main_job, player.sub_job}:contains('SCH') then
 			boxes.stratagems:updateContents(get_available_stratagem_count())
 		else
@@ -64,9 +83,11 @@ windower.register_event('prerender', function()
 				boxes.target:updateContents(target.name)
 			end
 			boxes.targHp:updateContents(target.hpp..'%')
+			boxes.dist:updateContents('%.1f':format(target.distance:sqrt()))
 		else
 			boxes.target:hide()
 			boxes.targHp:hide()
+			boxes.dist:hide()
 		end
 		
 		if (acc.hits ~= 0) or (acc.misses ~= 0) then
