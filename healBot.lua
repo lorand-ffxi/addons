@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '1.5'
+_addon.version = '1.6'
 
 require('luau')
 rarr = string.char(129,168)
@@ -40,6 +40,9 @@ windower.register_event('addon command', function (command,...)
 		local spellB = args[3] and ' '..args[3] or ''
 		local spellName = spellA..spellB
 		
+		if targetName == '<t>' then
+			targetName = windower.ffxi.get_mob_by_target().name
+		end
 		local target = windower.ffxi.get_mob_by_name(targetName)
 		if target == nil then
 			windower.add_to_chat(0, 'Invalid buff target: '..targetName)
@@ -59,7 +62,14 @@ windower.register_event('addon command', function (command,...)
 		if buffList[target.name] == nil then
 			buffList[target.name] = {}
 		end
-		buffList[target.name][spell.en] = {['spell']=spell, ['maintain']=true}
+		--Strip tier to match buff name
+		local idx = spell.en:find(" ")
+		local g = spell.en
+		if idx ~= nil then
+			g = g:sub(1, idx-1)
+		end
+		buffList[target.name][g] = {['spell']=spell, ['maintain']=true}
+		
 		windower.add_to_chat(0, 'Will maintain buff: '..spell.en..' '..rarr..' '..target.name)
 	elseif command == 'follow' then
 		local name = args[1]
@@ -135,7 +145,9 @@ windower.register_event('prerender', function()
 			
 			if active and (not moving) then
 				if not cureSomeone(player) then
-					checkBuffs(player, buffList)
+					if not checkDebuffs(player, debuffList) then
+						checkBuffs(player, buffList)
+					end
 				end
 			end
 		end	--player status check
@@ -169,31 +181,31 @@ windower.register_event('incoming chunk', function(id, data)
 			if players[tname] then
 				for _,tact in pairs(target.actions) do	--Iterate through the actions performed on the target
 					--atcd('[0x028]Action('..tact.message..'): '..actor..'['..act.actor_id..'] { '..act.param..' } '..rarr..' '..tname..'['..target.id..']'..' { '..tact.param..' }')
-					if S{2}:contains(tact.message) then	--Magic damage
+					if S{2}:contains(tact.message) then
+						--Magic damage
 						local spell = res.spells[act.param]	--act.param: spell; tact.param: damage
 						if S{230,231,232,233,234}:contains(act.param) then
 							registerDebuff(tname, 'Bio', true)
 						elseif S{23,24,25,26,27,33,34,35,36,37}:contains(act.param) then
 							registerDebuff(tname, 'Dia', true)
 						end
-					elseif S{230}:contains(tact.message) then	--Gain status effect
-						local buff = res.buffs[tact.param]
+					elseif S{82,127,141,166,186,194,203,205,230,236,237,242,243,266,267,268,269,270,271,272,277,278,279,280,319,320,321,374,375,412,645}:contains(tact.message) then
+						--Gain status effect
+						local buff = res.buffs[tact.param]	--act.param: spell; tact.param: buff/debuff
 						if enfeebling:contains(tact.param) then
 							registerDebuff(tname, buff.en, true)
 						else
-							local spell = res.spells[act.param]
-							registerBuff(tname, spell.en, true)
+							registerBuff(tname, buff.en, true)
 						end
-					elseif S{341}:contains(tact.message) then	--Remove status ailment
-						local buff = res.buffs[tact.param]
+					elseif S{64,83,123,168,204,206,322,341,342,343,344,350,378,531,647}:contains(tact.message) then
+						--Lose status effect
+						local buff = res.buffs[tact.param]	--act.param: spell; tact.param: buff/debuff
 						if enfeebling:contains(tact.param) then
 							registerDebuff(tname, buff.en, false)
 						else
 							registerBuff(tname, buff.en, false)
 						end
 					end
-					--242, 277: venom shell; tact.param = 3 = poison
-					--83: poisona; tact.param = 3 = poison
 				end
 			end
 		end
@@ -233,12 +245,6 @@ function registerBuff(targetName, buffName, gain)
 	if buffList[targetName] == nil then
 		buffList[targetName] = {}
 	end
-	--TODO: Handle other tiered spells, such as protect/shell, phalanx
-	if S{'Haste', 'Refresh'}:contains(buffName) then
-		if buffList[targetName][buffName] == nil then
-			buffName = buffName..' II'
-		end
-	end
 	if buffList[targetName][buffName] ~= nil then
 		if gain then
 			buffList[targetName][buffName]['landed'] = os.clock()
@@ -247,6 +253,17 @@ function registerBuff(targetName, buffName, gain)
 			buffList[targetName][buffName]['landed'] = nil
 			atcd("Buff: "..buffName.." wore off "..targetName)
 		end
+	end
+end
+
+function resetDebuffTimers(player)
+	debuffList[player] = {}
+end
+
+function resetBuffTimers(player)
+	if buffList[player] == nil then return end
+	for buffName,_ in pairs(buffList[player]) do
+		buffList[player][buffName]['landed'] = nil
 	end
 end
 

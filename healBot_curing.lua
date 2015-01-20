@@ -87,6 +87,9 @@ function getMissingHps()
 		if player ~= nil then
 			local hpMissing = math.ceil((player.hp/(player.hpp/100)) - player.hp)
 			party[player.name] = {['missing']=hpMissing, ['hpp']=player.hpp}
+			if player.hpp == 0 then
+				resetBuffTimers(player.name)
+			end
 		end
 	end
 	return party
