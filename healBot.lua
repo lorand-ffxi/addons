@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.0'
+_addon.version = '2.1'
 
 require('luau')
 rarr = string.char(129,168)
@@ -14,7 +14,7 @@ require 'healBot_follow'
 
 aliases = config.load('..\\shortcuts\\data\\aliases.xml')
 
-debugMode = true
+debugMode = false
 active = false
 actionDelay = 0.8
 followTarget = nil
@@ -31,6 +31,12 @@ extraWatchList = S{}
 texts = require('texts')
 moveInfo = texts.new({pos={x=0,y=0}})
 showMoveInfo = false
+
+defaultBuffs = {
+	['self'] = {'Haste II', 'Refresh II', 'Aquaveil', 'Protect V', 'Shell V', 'Phalanx', 'Reraise'},
+	['melee'] = {'Haste II', 'Phalanx II', 'Protect V', 'Shell V'},
+	['mage'] = {'Haste II', 'Refresh II', 'Protect V', 'Shell V', 'Phalanx II'}
+}
 
 windower.register_event('addon command', function (command,...)
     command = command and command:lower() or 'help'
@@ -81,6 +87,19 @@ windower.register_event('addon command', function (command,...)
 		registerNewBuff(args, true)
 	elseif command == 'cancelbuff' then
 		registerNewBuff(args, false)
+	elseif command == 'bufflist' then
+		if args[1] ~= nil then
+			local blist = defaultBuffs[args[1]]
+			if blist ~= nil then
+				for _,buff in pairs(blist) do
+					registerNewBuff({args[2], buff}, true)
+				end
+			else
+				atc('Error: Invalid argument specified for BuffList: '..args[1])
+			end
+		else
+			atc('Error: No argument specified for BuffList')
+		end
 	elseif command == 'follow' then
 		if args[1] ~= nil then
 			if S{'off', 'end', 'false'}:contains(args[1]:lower()) then
@@ -398,6 +417,15 @@ windower.register_event('incoming chunk', function(id, data)
 							registerDebuff(tname, buff.en, false)
 						else
 							registerBuff(tname, buff.en, false)
+						end
+					elseif S{84}:contains(tact.message) then
+						--${actor} is paralyzed.
+						registerDebuff(actor, 'paralysis', true)
+					elseif S{75}:contains(tact.message) then
+						--No effect
+						local spell = res.spells[act.param]
+						for _,debuff in pairs(removal_map[spell.en]) do
+							registerDebuff(tname, debuff, false)
 						end
 					end
 				end

@@ -13,6 +13,12 @@ local debuff_map = {
 	['slow'] = 'Erase',				['STR Down'] = 'Erase',			['VIT Down'] = 'Erase',				['weight'] = 'Erase'
 }
 
+removal_map = {
+	['Blindna']={'blindness'},		['Cursna']={'curse','doom'},	['Paralyna']={'paralysis'},			['Poisona']={'poison'},
+	['Silena']={'silence'},			['Stona']={'petrification'},	['Viruna']={'disease','plague'},
+	['Erase']={'weight','Accuracy Down','addle','AGI Down','Attack Down','bind','Bio','Burn','Choke','CHR Down','Defense Down','DEX Down','Dia','Drown','Elegy','Evasion Down','Frost','Inhibit TP','INT Down','Magic Acc. Down','Magic Atk. Down','Magic Def. Down','Magic Evasion Down','Max HP Down','Max MP Down','Max TP Down','MND Down','Nocturne','Rasp','Requiem','Shock','slow','STR Down','VIT Down'}
+}
+
 function checkOwnBuffs()
 	local player = windower.ffxi.get_player()
 	local activeBuffIds = player.buffs
