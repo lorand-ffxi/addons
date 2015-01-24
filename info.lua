@@ -1,7 +1,7 @@
 _addon.name = 'info'
 _addon.author = 'Lorand'
 _addon.command = 'info'
-_addon.version = '1.1'
+_addon.version = '1.2'
 
 require('luau')
 res = require('resources')
@@ -36,6 +36,17 @@ windower.register_event('keyboard', function (dik, flags, blocked)
 end)
 
 function parseInput(command)
+	if (command:startswith('type')) then
+		local contents = command:sub(6, #command-1)
+		local parsed = parseInput(contents)
+		local asNum = tonumber(contents)
+		if (#contents == 0) then
+			contents = nil
+		end
+		local toType = parsed and parsed or (asNum and asNum or contents)
+		return type(toType)
+	end
+	
 	local parts = string.split(command, '.')
 	local result = _G[parts[1]] or _G[parts[1]:lower()]
 	if result == nil then return nil end
