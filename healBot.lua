@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '1.6'
+_addon.version = '1.61'
 
 require('luau')
 rarr = string.char(129,168)
@@ -34,6 +34,11 @@ windower.register_event('addon command', function (command,...)
 	elseif S{'stop','end','off'}:contains(command) then
 		active = false
 		printStatus()
+	elseif command == 'reset' then
+		debuffList = {}
+		for player,_ in pairs(buffList) do
+			resetBuffTimers(player)
+		end
 	elseif command == 'buff' then
 		local targetName = args[1] and args[1] or ''
 		local spellA = args[2] and args[2] or ''
