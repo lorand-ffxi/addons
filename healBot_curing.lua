@@ -80,17 +80,20 @@ end
 
 --Returns a table with party members and how much hp they are missing
 function getMissingHps()
-	local pt = windower.ffxi.get_party()
-	local pty = {pt.p0, pt.p1, pt.p2, pt.p3, pt.p4, pt.p5}
-	local party = {}
-	for _,player in pairs(pty) do
-		if player ~= nil then
-			local hpMissing = math.ceil((player.hp/(player.hpp/100)) - player.hp)
-			party[player.name] = {['missing']=hpMissing, ['hpp']=player.hpp}
-			if player.hpp == 0 then
-				resetBuffTimers(player.name)
-			end
+	local targets = getMonitoredPlayers()
+	local hpTable = {}
+	for _,target in pairs(targets) do
+		local hpMissing = 0
+		if (target.hp ~= nil) then
+			hpMissing = math.ceil((target.hp/(target.hpp/100))-target.hp)
+		else
+			hpMissing = math.ceil((target.hpp/100)*1500)	--temporary fix for out of party characters
+		end
+		hpTable[target.name] = {['missing']=hpMissing, ['hpp']=target.hpp}
+		if target.hpp == 0 then
+			resetBuffTimers(target.name)
+			resetDebuffTimers(target.name)
 		end
 	end
-	return party
+	return hpTable
 end

@@ -42,7 +42,11 @@ function Pos:getDistance(other)
 end
 
 function Pos:toString()
-	return '('..self.pos.x..', '..self.pos.y..', '..self.pos.z..')'
+	return '('..roundPos(self.pos.x)..', '..roundPos(self.pos.y)..', '..roundPos(self.pos.z)..')'
+end
+
+function roundPos(pos)
+	return math.floor(pos*100)/100
 end
 
 return Pos

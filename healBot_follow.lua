@@ -6,7 +6,7 @@ function needToMove(targetName)
 	if targetName ~= nil then
 		local target = windower.ffxi.get_mob_by_name(targetName)
 		if target ~= nil then
-			return target.distance > 9
+			return math.sqrt(target.distance) > followDist
 		end
 	end
 	return false
@@ -18,7 +18,6 @@ function moveTowards(targetName)
 		windower.ffxi.run(getDirRadian(getPosition(), getPosition(targetName)))
 	end
 end
-
 
 --[[
 	Get the position of the entity with the given name, or own

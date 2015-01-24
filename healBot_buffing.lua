@@ -10,8 +10,29 @@ local debuff_map = {
 	['paralysis'] = 'Paralyna',		['petrification'] = 'Stona',	['plague'] = 'Viruna',				['poison'] = 'Poisona',
 	['Rasp'] = 'Erase',				['Requiem'] = 'Erase',			['Shock'] = 'Erase',				['silence'] = 'Silena',
 	--['sleep'] = 'Cure',				
-	['slow'] = 'Erase',				['STR Down'] = 'Erase',				['VIT Down'] = 'Erase',			['weight'] = 'Erase'
+	['slow'] = 'Erase',				['STR Down'] = 'Erase',			['VIT Down'] = 'Erase',				['weight'] = 'Erase'
 }
+
+function checkOwnBuffs()
+	local player = windower.ffxi.get_player()
+	local activeBuffIds = player.buffs
+	for _,id in pairs(activeBuffIds) do
+		if (enfeebling:contains(id)) then
+			registerDebuff(player.name, res.buffs[id].en, true)
+		else
+			registerBuff(player.name, res.buffs[id].en, true)
+		end
+	end
+end
+
+function checkOwnBuff(buffName)
+	local player = windower.ffxi.get_player()
+	local activeBuffIds = S(player.buffs)
+	local buff = res.buffs:with('en', buffName)
+	if (activeBuffIds:contains(buff.id)) then
+		registerBuff(player.name, buffName, true)
+	end
+end
 
 function checkBuffs(player, buffList)
 	local now = os.clock()

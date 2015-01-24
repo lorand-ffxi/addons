@@ -1,3 +1,5 @@
+local romanNumerals = {'I','II','III','IV','V','VI','VII','VIII','IX','X','XI'}
+
 function get_bit_packed(dat_string,start,stop)
 	--Copied from Battlemod; thanks to Byrth / SnickySnacks
 	local newval = 0   
@@ -30,8 +32,58 @@ function print_action_info(act)
 	end
 end
 
+function formatSpellName(text)
+	if (type(text) ~= 'string') or (#text < 1) then return nil end
+	
+	local fromAlias = aliases[text]
+	if (fromAlias ~= nil) then
+		return fromAlias
+	end
+	
+	local parts = text:split(' ')
+	if #parts > 2 then
+		return nil
+	elseif #parts == 2 then
+		local name = formatName(parts[1])
+		local tier = toRomanNumeral(parts[2])
+		tier = tier and tier or parts[2]:upper()
+		return name..' '..tier
+	else
+		local name = formatName(text)
+		local tier = text:sub(-1)
+		local rnTier = toRomanNumeral(tier)
+		if (rnTier ~= nil) then
+			return name:sub(1, #name-1)..' '..rnTier
+		else
+			return name
+		end
+	end
+end
+
+function formatName(text)
+	if (text ~= nil) and (type(text) == 'string') then
+		return text:lower():ucfirst()
+	end
+	return text
+end
+
+function toRomanNumeral(val)
+	if type(val) ~= 'number' then
+		if type(val) == 'string' then
+			val = tonumber(val)
+		else
+			return nil
+		end
+	end
+	return romanNumerals[val]
+end
+
 function atc(text)
 	windower.add_to_chat(0, '[healBot]'..text)
+end
+
+function atcd(text)
+	if debugMode then atc(text) end
 end
 
 function print_table_keys(t, prefix)
