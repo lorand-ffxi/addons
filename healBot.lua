@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.1'
+_addon.version = '2.1.2'
 
 require('luau')
 rarr = string.char(129,168)
@@ -16,13 +16,15 @@ aliases = config.load('..\\shortcuts\\data\\aliases.xml')
 
 debugMode = false
 active = false
-actionDelay = 0.8
+actionDelay = 0.08
 followTarget = nil
 follow = false
 followDist = 3
+followDelay = 0.08
 showPacketInfo = false
 
 enfeebling = T{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,155,156,157,158,159,167,168,174,175,177,186,189,192,193,194,223,259,260,261,262,263,264,298,378,379,380,386,387,388,389,390,391,392,393,394,395,396,397,398,399,400,404,448,449,450,451,452,473,540,557,558,559,560,561,562,563,564,565,566,567}
+trusts = S{'Joachim', 'Ulmia', 'Cherukiki', 'Tenzen'}
 buffList = {}
 debuffList = {}
 ignoreList = S{}
@@ -35,7 +37,9 @@ showMoveInfo = false
 defaultBuffs = {
 	['self'] = {'Haste II', 'Refresh II', 'Aquaveil', 'Protect V', 'Shell V', 'Phalanx', 'Reraise'},
 	['melee'] = {'Haste II', 'Phalanx II', 'Protect V', 'Shell V'},
-	['mage'] = {'Haste II', 'Refresh II', 'Protect V', 'Shell V', 'Phalanx II'}
+	['mage'] = {'Haste II', 'Refresh II', 'Protect V', 'Shell V', 'Phalanx II'},
+	['melee2'] = {'Haste II', 'Phalanx II'},
+	['mage2'] = {'Haste II', 'Refresh II', 'Phalanx II'}
 }
 
 windower.register_event('addon command', function (command,...)
@@ -279,14 +283,14 @@ function isMoving()
 	posArrival = posArrival and posArrival or os.clock()
 	local currentPos = getPosition()
 	local now = os.clock()
-	local moving = false
+	local moving = true
+	local timeAtPos = math.floor((now - posArrival)*10)/10
 	if (lastPos:equals(currentPos)) then
-		moving = (now - posArrival) < 0.5
+		moving = (timeAtPos < 0.5)
 	else
 		lastPos = currentPos
 		posArrival = now
 	end
-	local timeAtPos = math.floor((now - posArrival)*10)/10
 	if math.floor(timeAtPos) == timeAtPos then
 		timeAtPos = timeAtPos..'.0'
 	end
@@ -302,7 +306,9 @@ function getMonitoredPlayers()
 	local targets = S{}
 	for _,player in pairs(pty) do
 		if (player ~= nil) and (not ignoreList:contains(player.name)) and (me.zone == player.zone) then
-			targets[player.name] = player
+			if (not trusts:contains(player.name)) then
+				targets[player.name] = player
+			end
 		end
 	end
 	
@@ -343,34 +349,33 @@ end
 
 windower.register_event('load', function()
 	lastAction = os.clock()
+	lastFollowCheck = os.clock()
 end)
 
 windower.register_event('prerender', function()
 	local now = os.clock()
 	local moving = isMoving()
-	if (now - lastAction) >= actionDelay then
-		local player = windower.ffxi.get_player()
-		if (player ~= nil) and S{0,1}:contains(player.status) then	--Assert player is idle or engaged
-			actionDelay = 0.08
-			
-			if follow then
-				if not needToMove(followTarget) then
-					windower.ffxi.run(false)
-				else
-					moveTowards(followTarget)
+	local player = windower.ffxi.get_player()
+	if (player ~= nil) and S{0,1}:contains(player.status) then	--Assert player is idle or engaged
+		if follow and ((now - lastFollowCheck) > followDelay) then
+			if not needToMove(followTarget) then
+				windower.ffxi.run(false)
+			else
+				moveTowards(followTarget)
+				moving = true
+			end
+			lastFollowCheck = now
+		end
+		
+		if active and (not moving) and ((now - lastAction) > actionDelay) then
+			if not cureSomeone(player) then						--Curing is 1st priority
+				if not checkDebuffs(player, debuffList) then	--Debuff removal is 2nd priority
+					checkBuffs(player, buffList)				--Buffing is 3rd priority
 				end
 			end
-			
-			if active and (not moving) then
-				if not cureSomeone(player) then						--Curing is 1st priority
-					if not checkDebuffs(player, debuffList) then	--Debuff removal is 2nd priority
-						checkBuffs(player, buffList)				--Buffing is 3rd priority
-					end
-				end
-			end
-		end	--player status check
-		lastAction = now
-	end	--time check
+			lastAction = now
+		end
+	end
 end)
 
 function isTooFar(name)
@@ -420,7 +425,9 @@ windower.register_event('incoming chunk', function(id, data)
 						end
 					elseif S{84}:contains(tact.message) then
 						--${actor} is paralyzed.
-						registerDebuff(actor, 'paralysis', true)
+						if players[actor] then
+							registerDebuff(actor, 'paralysis', true)
+						end
 					elseif S{75}:contains(tact.message) then
 						--No effect
 						local spell = res.spells[act.param]
@@ -459,6 +466,9 @@ function registerDebuff(targetName, debuffName, gain)
 	if gain then
 		debuffList[targetName][debuffName] = {['landed']=os.clock()}
 		atcd("Detected debuff: "..debuffName.." "..rarr.." "..targetName)
+		if (debuffName == 'slow') then
+			registerBuff(targetName, 'Haste', false)
+		end
 	else
 		debuffList[targetName][debuffName] = nil
 		atcd("Detected debuff: "..debuffName.." wore off "..targetName)

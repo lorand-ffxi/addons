@@ -87,7 +87,7 @@ function getMissingHps()
 		if (target.hp ~= nil) then
 			hpMissing = math.ceil((target.hp/(target.hpp/100))-target.hp)
 		else
-			hpMissing = math.ceil((target.hpp/100)*1500)	--temporary fix for out of party characters
+			hpMissing = 1500 - math.ceil((target.hpp/100)*1500)	--temporary fix for out of party characters
 		end
 		hpTable[target.name] = {['missing']=hpMissing, ['hpp']=target.hpp}
 		if target.hpp == 0 then
