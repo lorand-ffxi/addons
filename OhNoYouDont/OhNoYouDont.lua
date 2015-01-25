@@ -62,6 +62,7 @@ end
 function registerMob(name, add)
 	local mobName = stringify(name)
 	mobs[mobName] = add and true or nil
+	addonPrint('Monitoring mob: '..mobName)
 end
 
 function registerAbility(ability, action)
@@ -109,6 +110,7 @@ windower.register_event('incoming chunk', function(id, data)
 		if takeAction then
 			if watchFor[mobAbil.id].stun then
 				windower.send_command('input /ja "Violent Flourish" <t>')
+				addonPrint('Attempting to stun...')
 				--windower.send_command('input '..stunCommand..' '..actor.name)
 				--addonPrint('WARNING: '..mobAbil.en..' detected, but stunning has not yet been implemented!')
 			elseif watchFor[mobAbil.id].turn then

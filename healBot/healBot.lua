@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.1.2'
+_addon.version = '2.1.3'
 
 require('luau')
 rarr = string.char(129,168)
@@ -431,8 +431,11 @@ windower.register_event('incoming chunk', function(id, data)
 					elseif S{75}:contains(tact.message) then
 						--No effect
 						local spell = res.spells[act.param]
-						for _,debuff in pairs(removal_map[spell.en]) do
-							registerDebuff(tname, debuff, false)
+						local debuffs = removal_map[spell.en]
+						if (debuffs ~= nil) then
+							for _,debuff in pairs(debuffs) do
+								registerDebuff(tname, debuff, false)
+							end
 						end
 					end
 				end

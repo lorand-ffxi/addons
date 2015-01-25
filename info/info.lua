@@ -1,7 +1,7 @@
 _addon.name = 'info'
 _addon.author = 'Lorand'
 _addon.command = 'info'
-_addon.version = '1.2'
+_addon.version = '1.21'
 
 require('luau')
 res = require('resources')
@@ -49,9 +49,9 @@ function parseInput(command)
 	
 	local parts = string.split(command, '.')
 	local result = _G[parts[1]] or _G[parts[1]:lower()]
-	if result == nil then return nil end
 	
 	for i = 2, #parts, 1 do
+		if result == nil then return nil end
 		local str = parts[i]
 		if string.endswith(str, '()') then
 			local func = str:sub(1, #str-2)

@@ -5,6 +5,7 @@ _addon.version = '1.0.2'
 
 require('sets')
 require('actions')
+res = require('resources')
 local InfoBox = require('infoBox')
 start_time = os.time()
 local strat_charge_time = {[1]=240,[2]=120,[3]=80,[4]=60,[5]=48}
@@ -60,7 +61,7 @@ end)
 windower.register_event('prerender', function()
 	if player then
 		boxes.zt:updateContents(os.date('!%H:%M:%S', os.time()-start_time))
-	
+		
 		local me = windower.ffxi.get_mob_by_target('me')
 		if me then
 			boxes.speed:updateContents('%+.0f %%':format(100*((me.movement_speed/5)-1)))

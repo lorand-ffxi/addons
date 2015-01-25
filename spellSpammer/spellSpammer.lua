@@ -21,8 +21,6 @@ windower.register_event('addon command', function (command,...)
 		print_status()
 	elseif command == 'status' then
 		print_status()
-	elseif command == 'info' then
-		printInfo()
 	else
 		windower.add_to_chat(0, 'Error: Unknown command')
 	end

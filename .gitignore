@@ -1,1 +1,34 @@
 *.stackdump
+autolock/*
+battlemod/battlemod.lua
+battlemod/data/filters/filters - Copy (2).xml
+battlemod/data/filters/filters - Copy (3).xml
+battlemod/data/filters/filters - Copy.xml
+battlemod/generic_helpers.lua
+battlemod/parse_action_packet.lua
+battlemod/README.md
+battlemod/statics.lua
+cancel/cancel.lua
+chars/*
+ConsoleBG/*
+DressUp/*
+ffxiHealer/*
+findAll/*
+GearSwap/*
+libs/*
+Logger/*
+PetTP/*
+pointwatch/*
+porter/*
+scoreboard/*
+timestamp/*
+Text/*
+TParty/*
+Treasury/*
+pet_fix/pet_fix.lua
+shortcuts/helper_functions.lua
+shortcuts/readme.md
+shortcuts/shortcuts.lua
+shortcuts/statics.lua
+shortcuts/targets.lua
+update/*

@@ -14,11 +14,16 @@ local settings = config.load(default_settings)
 local pname = nil
 
 windower.register_event('chat message', function(message, sender, mode, gm)
+	local lmessage = message:lower()
 	local reactions = settings.reactions[mode]
 	if reactions == nil then return end
-	local reaction = reactions[message:lower():gsub(' ', '_')]
+	local modMessage = lmessage:gsub(' ', '_')
+	local reaction = reactions[modMessage]
 	if reaction ~= nil then
 		windower.send_command('input '..reaction:gsub('{sender}', sender))
+	elseif lmessage:contains('please') then
+		local words = modMessage:split('_')
+		
 	end
 end)
 
@@ -37,7 +42,7 @@ windower.register_event('addon command', function(command,...)
 		addonPrint('Error: Unknown command')
 	end
 	
-	settings:save()
+	settings:save('all')
 end)
 
 function changeAddons(args)
