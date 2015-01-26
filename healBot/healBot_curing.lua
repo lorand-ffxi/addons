@@ -1,4 +1,3 @@
-minCureTier = 3
 potencies = {[1]=87, [2]=199, [3]=438, [4]=816, [5]=1056, [6]=1311}
 cnums = {['Cure'] = 1, ['Cure II'] = 2, ['Cure III'] = 3, ['Cure IV'] = 4, ['Cure V'] = 5, ['Cure VI'] = 6}
 ncures = {'Cure','Cure II','Cure III','Cure IV','Cure V','Cure VI'}
