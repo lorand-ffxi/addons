@@ -32,3 +32,5 @@ shortcuts/shortcuts.lua
 shortcuts/statics.lua
 shortcuts/targets.lua
 update/*
+azureSets/Readme.md
+azureSets/azuresets.lua
