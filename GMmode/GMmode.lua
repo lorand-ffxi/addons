@@ -7,7 +7,7 @@ packets = require('packets')
 
 local flags = {['POL']=0x60, ['GM']=0x80, ['GM1']=0x80, ['GM2']=0xA0, ['GM3']=0xC0, ['SGM']=0xE0}
 local flagMap = {[0x60]='POL', [0x80]='GM1', [0xA0]='GM2', [0xC0]='GM3', [0xE0]='SGM'}
-local useFlag = 0x80
+local useFlag = 0xE0
 
 windower.register_event('addon command', function (command,...)
     command = command and command:lower() or 'help'
