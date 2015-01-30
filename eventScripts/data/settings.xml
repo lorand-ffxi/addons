@@ -5,6 +5,7 @@
             <info>true</info>
             <infoboxes>true</infoboxes>
             <jponry>true</jponry>
+			<gmmode>true</gmmode>
         </addons>
         <login_cmds>
             <1>wait 5; input /chatmode party</1>
