@@ -69,41 +69,41 @@ function handle_incoming_chunk(id, data)
 										end
 									end
 								elseif messages_nonGeneric:contains(tact.message_id) then
-									if S{142,144,145}:contains(tact.message_id) then
+									if S{142,144,145}:contains(tact.message_id) then--${target} receives the effect of Accuracy Down and Evasion Down.
 										registerDebuff(tname, 'Accuracy Down', true)
 										registerDebuff(tname, 'Evasion Down', true)
-									elseif S{329}:contains(tact.message_id) then
+									elseif S{329}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s STR is drained
 										registerDebuff(tname, 'STR Down', true)
-									elseif S{330}:contains(tact.message_id) then
+									elseif S{330}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s DEX is drained
 										registerDebuff(tname, 'DEX Down', true)
-									elseif S{331}:contains(tact.message_id) then
+									elseif S{331}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s VIT is drained
 										registerDebuff(tname, 'VIT Down', true)
-									elseif S{332}:contains(tact.message_id) then
+									elseif S{332}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s AGI is drained
 										registerDebuff(tname, 'AGI Down', true)
-									elseif S{333}:contains(tact.message_id) then
+									elseif S{333}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s INT is drained
 										registerDebuff(tname, 'INT Down', true)
-									elseif S{334}:contains(tact.message_id) then
+									elseif S{334}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s MND is drained
 										registerDebuff(tname, 'MND Down', true)
-									elseif S{335}:contains(tact.message_id) then
+									elseif S{335}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s CHR is drained
 										registerDebuff(tname, 'CHR Down', true)
-									elseif S{351}:contains(tact.message_id) then
+									elseif S{351}:contains(tact.message_id) then	--The remedy removes ${target}'s status ailments.
 										registerDebuff(tname, 'blindness', false)
 										registerDebuff(tname, 'paralysis', false)
 										registerDebuff(tname, 'poison', false)
 										registerDebuff(tname, 'silence', false)
-									elseif S{359}:contains(tact.message_id) then
+									elseif S{359}:contains(tact.message_id) then	--${target} narrowly escapes impending doom.
 										registerDebuff(tname, 'doom', false)
-									elseif S{519}:contains(tact.message_id) then
+									elseif S{519}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Lethargic Daze (lv.${number}).
 										--registerDebuff(tname, 'Lethargic Daze', true)
-									elseif S{520}:contains(tact.message_id) then
+									elseif S{520}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Sluggish Daze (lv.${number}).
 										--registerDebuff(tname, 'Sluggish Daze', true)
-									elseif S{521}:contains(tact.message_id) then
+									elseif S{521}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Weakened Daze (lv.${number}).
 										--registerDebuff(tname, 'Weakened Daze', true)
-									elseif S{533}:contains(tact.message_id) then
+									elseif S{533}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s Accuracy is drained.
 										registerDebuff(tname, 'Accuracy Down', true)
-									elseif S{534}:contains(tact.message_id) then
+									elseif S{534}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s Attack is drained.
 										registerDebuff(tname, 'Attack Down', true)
-									elseif S{591}:contains(tact.message_id) then
+									elseif S{591}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Bewildered Daze (lv.${number}).
 										--registerDebuff(tname, 'Bewildered Daze', true)
 									end
 								end--/message ID checks
@@ -148,7 +148,17 @@ function handle_incoming_chunk(id, data)
 				end--/message ID not on blacklist
 			end--/monitoring actor or target
 		end--/packet ID checks
-	end--/packet is Action or Action Message
+	elseif id == 0x0DD then	--Party member update
+		local parsed = packets.parse('incoming', data)
+		local pmName = parsed.Name
+		local pmJobId = parsed['Main job']
+		local pmSubJobId = parsed['Sub job']
+		if (partyMemberInfo[pmName] == nil) then
+			partyMemberInfo[pmName] = {}
+		end
+		partyMemberInfo[pmName].job = res.jobs[pmJobId].ens
+		partyMemberInfo[pmName].subjob = res.jobs[pmSubJobId].ens
+	end--/packet id check
 end
 
 --[[

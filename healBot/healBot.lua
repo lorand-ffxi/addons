@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.2'
+_addon.version = '2.2.1'
 
 require('luau')
 rarr = string.char(129,168)
@@ -47,6 +47,7 @@ windower.register_event('load', function()
 	actionDelay = 0.08
 	minCureTier = 3
 	lastActingState = false
+	partyMemberInfo = {}
 end)
 
 windower.register_event('logout', function()
@@ -125,10 +126,10 @@ function isPerformingAction(moving)
 	
 	if (lastActingState ~= acting) then	--If the current acting state is different from the last one
 		if lastActingState then				--If an action was being performed
-			actionDelay = 3					--Set a longer delay
+			actionDelay = 2.75					--Set a longer delay
 			lastAction = os.clock()				--The delay will be from this time
 		else								--If no action was being performed
-			actionDelay = 0.08					--Set a short delay
+			actionDelay = 0.1					--Set a short delay
 		end
 		lastActingState = acting			--Refresh the last acting state
 	end

@@ -9,8 +9,7 @@ function cureSomeone(player)
 				if (player.vitals.mp >= spell.mp_cost) then
 					atcd(spell.en..' '..rarr..' '..curee.name..'('..curee.missing..')')
 					windower.send_command('input '..spell.prefix..' "'..spell.en..'" '..curee.name)
-					actionDelay = 0.5
-					--actionDelay = spell.cast_time
+					actionDelay = 0.6
 					return true
 				end
 			end

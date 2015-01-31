@@ -36,8 +36,7 @@ function checkBuffs(player, buffList)
 							atc(spell.en..' '..rarr..' '..targ)
 							windower.send_command('input '..spell.prefix..' "'..spell.en..'" '..targ)
 							info.attempted = now
-							actionDelay = 0.5
-							--actionDelay = spell.cast_time
+							actionDelay = 0.6
 							return true
 						end
 					end
@@ -61,8 +60,7 @@ function checkDebuffs(player, debuffList)
 							atc(spell.en..' '..rarr..' '..targ)
 							windower.send_command('input '..spell.prefix..' "'..spell.en..'" '..targ)
 							info.attempted = now
-							actionDelay = 0.5
-							--actionDelay = spell.cast_time
+							actionDelay = 0.6
 							return true
 						end
 					end
@@ -161,14 +159,23 @@ function registerDebuff(targetName, debuffName, gain)
 		debuffList[targetName] = {}
 	end
 	if gain then
+		local ignoreList = ignoreDebuffs[debuffName]
+		local pmInfo = partyMemberInfo[targetName]
+		if (ignoreList ~= nil) and (pmInfo ~= nil) then
+			if ignoreList:contains(pmInfo.job) or ignoreList:contains(pmInfo.subjob) then
+				atc('Ignoring '..debuffName..' on '..targetName..' because of their job')
+				return
+			end
+		end
+		
 		debuffList[targetName][debuffName] = {['landed']=os.clock()}
-		atcd("Detected debuff: "..debuffName.." "..rarr.." "..targetName)
+		atcd('Detected debuff: '..debuffName..' '..rarr..' '..targetName)
 		if (debuffName == 'slow') then
 			registerBuff(targetName, 'Haste', false)
 		end
 	else
 		debuffList[targetName][debuffName] = nil
-		atcd("Detected debuff: "..debuffName.." wore off "..targetName)
+		atcd('Detected debuff: '..debuffName..' wore off '..targetName)
 	end
 end
 

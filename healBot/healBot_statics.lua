@@ -51,6 +51,19 @@ defaultBuffs = {
 	['mage2'] = {'Haste II', 'Refresh II', 'Phalanx II'}
 }
 
+ignoreDebuffs = {
+	['Accuracy Down'] = S{'WHM','BLM','RDM','BRD','SMN','SCH','GEO'},
+	['AGI Down'] = S{'WHM','BLM','RDM','BRD','SMN','SCH','GEO'},
+	['Attack Down'] = S{'WHM','BLM','RDM','BRD','SMN','SCH','GEO'},
+	['DEX Down'] = S{'WHM','BLM','RDM','BRD','SMN','SCH','GEO'},
+	['Inhibit TP'] = S{'WHM','BLM','RDM','BRD','SMN','SCH','GEO'},
+	['Max TP Down'] = S{'WHM','BLM','RDM','BRD','SMN','SCH','GEO'},
+	['STR Down'] = S{'WHM','BLM','RDM','BRD','SMN','SCH','GEO'},
+	['addle'] = S{'WAR','MNK','THF','BST','RNG','DRG','SAM','COR','PUP','DNC'},
+	['blind'] = S{'WHM','BLM','RDM','BRD','SMN','SCH','GEO'},
+	['silence'] = S{'WAR','MNK','THF','BST','RNG','DRG','SAM','COR','PUP','DNC'}
+}
+
 romanNumerals = {'I','II','III','IV','V','VI','VII','VIII','IX','X','XI'}
 
 potencies = {[1]=87, [2]=199, [3]=438, [4]=816, [5]=1056, [6]=1311}
