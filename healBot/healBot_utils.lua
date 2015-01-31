@@ -1,35 +1,173 @@
-local romanNumerals = {'I','II','III','IV','V','VI','VII','VIII','IX','X','XI'}
-
-function get_bit_packed(dat_string,start,stop)
-	--Copied from Battlemod; thanks to Byrth / SnickySnacks
-	local newval = 0   
-	local c_count = math.ceil(stop/8)
-	while c_count >= math.ceil((start+1)/8) do
-		local cur_val = dat_string:byte(c_count)
-		local scal = 256
-		if c_count == math.ceil(stop/8) then
-			cur_val = cur_val%(2^((stop-1)%8+1))
+function processCommand(command,...)
+	command = command and command:lower() or 'help'
+	local args = {...}
+	
+	if command == 'reload' then
+		windower.send_command('lua reload healBot')
+	elseif command == 'unload' then
+		windower.send_command('lua unload healBot')
+	elseif S{'start','on'}:contains(command) then
+		activate()
+	elseif S{'stop','end','off'}:contains(command) then
+		active = false
+		printStatus()
+	elseif command == 'mincure' then
+		if not validate(args, 1, 'Error: No argument specified for minCure') then return end
+		local val = tonumber(args[1])
+		if (val ~= nil) and (1 <= val) and (val <= 6) then
+			minCureTier = val
+			atc('Minimum cure tier set to '..minCureTier)
+		else
+			atc('Error: Invalid argument specified for minCure')
 		end
-		if c_count == math.ceil((start+1)/8) then
-			cur_val = math.floor(cur_val/(2^(start%8)))
-			scal = 2^(8-start%8)
+	elseif command == 'moveinfo' then
+		if not validate(args, 1, 'Error: No argument specified for moveInfo') then return end
+		if S{'show', 'on'}:contains(args[1]:lower()) then
+			showMoveInfo = true
+		elseif S{'hide', 'off'}:contains(args[1]:lower()) then
+			showMoveInfo = false
 		end
-		newval = newval*scal + cur_val
-		c_count = c_count - 1
+	elseif command == 'reset' then
+		local b = false
+		local d = false
+		if (args[1] == nil) then
+			b = true
+			d = true
+		elseif (args[1]:lower() == 'buffs') then
+			b = true
+		elseif (args[1]:lower() == 'debuffs') then
+			d = true
+		else
+			atc('Error: Invalid argument specified for reset: '..arg[1])
+		end
+		if (b) then
+			for player,_ in pairs(buffList) do
+				resetBuffTimers(player)
+			end
+		end
+		if (d) then
+			debuffList = {}
+		end
+		checkOwnBuffs()
+	elseif command == 'buff' then
+		registerNewBuff(args, true)
+	elseif command == 'cancelbuff' then
+		registerNewBuff(args, false)
+	elseif command == 'bufflist' then
+		if not validate(args, 1, 'Error: No argument specified for BuffList') then return end
+		local blist = defaultBuffs[args[1]]
+		if blist ~= nil then
+			for _,buff in pairs(blist) do
+				registerNewBuff({args[2], buff}, true)
+			end
+		else
+			atc('Error: Invalid argument specified for BuffList: '..args[1])
+		end
+	elseif command == 'follow' then
+		if not validate(args, 1, 'Error: No argument specified for follow') then return end
+		if S{'off', 'end', 'false'}:contains(args[1]:lower()) then
+			follow = false
+		elseif S{'distance', 'dist', 'd'}:contains(args[1]:lower()) then
+			local dist = tonumber(args[2])
+			if (dist ~= nil) and (0 < dist) and (dist < 45) then
+				followDist = dist
+				atc('Follow distance set to '..followDist)
+			else
+				atc('Error: Invalid argument specified for follow distance')
+			end
+		else
+			local name = args[1]
+			if name == '<t>' then
+				name = windower.ffxi.get_mob_by_target().name
+			end
+			followTarget = formatName(name)
+			follow = true
+			atc('Now following '..followTarget)
+		end
+	elseif command == 'packetinfo' then
+		if not validate(args, 1, 'Error: No argument specified for PacketInfo') then return end
+		if args[1]:lower() == 'on' then
+			atc('Will now display packet info')
+			showPacketInfo = true
+		elseif args[1]:lower() == 'off' then
+			atc('Will no longer display packet info')
+			showPacketInfo = false
+		else
+			atc('Invalid argunment for packetInfo: '..args[1])
+		end
+	elseif command == 'actioninfo' then
+		if not validate(args, 1, 'Error: No argument specified for ActionInfo') then return end
+		if args[1]:lower() == 'on' then
+			atc('Will now display action info')
+			showActionInfo = true
+		elseif args[1]:lower() == 'off' then
+			atc('Will no longer display action info')
+			showActionInfo = false
+		else
+			atc('Invalid argunment for packetInfo: '..args[1])
+		end
+	elseif S{'ignore', 'unignore', 'watch', 'unwatch'}:contains(command) then
+		monitorCommand(command, args[1])
+	elseif command == 'status' then
+		printStatus()
+	elseif command == 'info' then
+		printInfo()
+	else
+		atc('Error: Unknown command')
 	end
-	return newval
 end
 
-function print_action_info(act)
-	local actionPerformer = windower.ffxi.get_mob_by_id(act.actor_id).name
-	atc('Incoming action by '..actionPerformer..' ['..act.actor_id..']:  { category : '..act.category..' | recast : '..act.recast..' | param : '..act.param..' }')
-	for k,v in pairs(act.targets) do
-		local actionTarget = windower.ffxi.get_mob_by_id(v.id).name
-		atc(' '..rarr..' '..actionTarget..' ['..v.id..']')
-		for l,b in pairs(v.actions) do
-			atc('      message : '..b.message..' | param : '..b.param)
+function monitorCommand(cmd, pname)
+	if (pname == nil) then
+		atc('Error: No argument specified for '..cmd)
+		return
+	end
+	local name = formatName(pname)
+	if cmd == 'ignore' then
+		if (not ignoreList:contains(name)) then
+			ignoreList:add(name)
+			atc('Will now ignore '..name)
+			if extraWatchList:contains(name) then
+				extraWatchList:remove(name)
+			end
+		else
+			atc('Error: Already ignoring '..name)
+		end
+	elseif cmd == 'unignore' then
+		if (ignoreList:contains(name)) then
+			ignoreList:remove(name)
+			atc('Will no longer ignore '..name)
+		else
+			atc('Error: Was not ignoring '..name)
+		end
+	elseif cmd == 'watch' then
+		if (not extraWatchList:contains(name)) then
+			extraWatchList:add(name)
+			atc('Will now watch '..name)
+			if ignoreList:contains(name) then
+				ignoreList:remove(name)
+			end
+		else
+			atc('Error: Already watching '..name)
+		end
+	elseif cmd == 'unwatch' then
+		if (extraWatchList:contains(name)) then
+			extraWatchList:remove(name)
+			atc('Will no longer watch '..name)
+		else
+			atc('Error: Was not watching '..name)
 		end
 	end
+end
+
+function validate(args, numArgs, message)
+	for i = 1, numArgs do
+		if (args[i] == nil) then
+			atc(message..' ('..i..')')
+			return false
+		end
+	end
+	return true
 end
 
 function formatSpellName(text)
@@ -107,85 +245,14 @@ function printPairs(tbl, prefix)
 	end
 end
 
---Extracts useful information from a given packet
-function get_action_info(id, data)
-	--Modified from Battlemod's 'incoming chunk' function; thanks to Byrth / SnickySnacks
-    local pref = data:sub(1,4)
-    local data = data:sub(5)
-	
-    if id == 0x28 then			-------------- ACTION PACKET ---------------
-        local act = {}
-        act.do_not_need = get_bit_packed(data,0,8)
-        act.actor_id = get_bit_packed(data,8,40)
-        act.target_count = get_bit_packed(data,40,50)
-        act.category = get_bit_packed(data,50,54)
-        act.param = get_bit_packed(data,54,70)
-        act.unknown = get_bit_packed(data,70,86)
-        act.recast = get_bit_packed(data,86,118)
-        act.targets = {}
-        local offset = 118
-        for i = 1,act.target_count do
-            act.targets[i] = {}
-            act.targets[i].id = get_bit_packed(data,offset,offset+32)
-            act.targets[i].action_count = get_bit_packed(data,offset+32,offset+36)
-            offset = offset + 36
-            act.targets[i].actions = {}
-            for n = 1,act.targets[i].action_count do
-                act.targets[i].actions[n] = {}
-                act.targets[i].actions[n].reaction = get_bit_packed(data,offset,offset+5)
-                act.targets[i].actions[n].animation = get_bit_packed(data,offset+5,offset+16)
-                act.targets[i].actions[n].effect = get_bit_packed(data,offset+16,offset+21)
-                act.targets[i].actions[n].stagger = get_bit_packed(data,offset+21,offset+27)
-                act.targets[i].actions[n].param = get_bit_packed(data,offset+27,offset+44)
-                act.targets[i].actions[n].message = get_bit_packed(data,offset+44,offset+54)
-                act.targets[i].actions[n].unknown = get_bit_packed(data,offset+54,offset+85)
-                act.targets[i].actions[n].has_add_effect = get_bit_packed(data,offset+85,offset+86)
-                offset = offset + 86
-                if act.targets[i].actions[n].has_add_effect == 1 then
-                    act.targets[i].actions[n].has_add_effect = true
-                    act.targets[i].actions[n].add_effect_animation = get_bit_packed(data,offset,offset+6)
-                    act.targets[i].actions[n].add_effect_effect = get_bit_packed(data,offset+6,offset+10)
-                    act.targets[i].actions[n].add_effect_param = get_bit_packed(data,offset+10,offset+27)
-                    act.targets[i].actions[n].add_effect_message = get_bit_packed(data,offset+27,offset+37)
-                    offset = offset + 37
-                else
-                    act.targets[i].actions[n].has_add_effect = false
-                    act.targets[i].actions[n].add_effect_animation = 0
-                    act.targets[i].actions[n].add_effect_effect = 0
-                    act.targets[i].actions[n].add_effect_param = 0
-                    act.targets[i].actions[n].add_effect_message = 0
-                end
-                act.targets[i].actions[n].has_spike_effect = get_bit_packed(data,offset,offset+1)
-                offset = offset +1
-                if act.targets[i].actions[n].has_spike_effect == 1 then
-                    act.targets[i].actions[n].has_spike_effect = true
-                    act.targets[i].actions[n].spike_effect_animation = get_bit_packed(data,offset,offset+6)
-                    act.targets[i].actions[n].spike_effect_effect = get_bit_packed(data,offset+6,offset+10)
-                    act.targets[i].actions[n].spike_effect_param = get_bit_packed(data,offset+10,offset+24)
-                    act.targets[i].actions[n].spike_effect_message = get_bit_packed(data,offset+24,offset+34)
-                    offset = offset + 34
-                else
-                    act.targets[i].actions[n].has_spike_effect = false
-                    act.targets[i].actions[n].spike_effect_animation = 0
-                    act.targets[i].actions[n].spike_effect_effect = 0
-                    act.targets[i].actions[n].spike_effect_param = 0
-                    act.targets[i].actions[n].spike_effect_message = 0
-                end
-            end
-        end
-        return act
-    elseif id == 0x29 then		----------- ACTION MESSAGE ------------
-		local am = {}
-		am.actor_id = get_bit_packed(data,0,32)
-		am.target_id = get_bit_packed(data,32,64)
-		am.param_1 = get_bit_packed(data,64,96)
-		am.param_2 = get_bit_packed(data,96,106) -- First 6 bits
-		am.param_3 = get_bit_packed(data,106,128) -- Rest
-		am.actor_index = get_bit_packed(data,128,144)
-		am.target_index = get_bit_packed(data,144,160)
-		am.message_id = get_bit_packed(data,160,175) -- Cut off the most significant bit, hopefully
-		return am
+function populateTrustList()
+	local trusts = S{}
+	for _,spell in pairs(res.spells) do
+		if (spell.type == 'Trust') then
+			trusts:add(spell.en)
+		end
 	end
+	return trusts
 end
 
 -----------------------------------------------------------------------------------------------------------

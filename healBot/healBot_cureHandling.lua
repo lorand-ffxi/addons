@@ -1,8 +1,3 @@
-potencies = {[1]=87, [2]=199, [3]=438, [4]=816, [5]=1056, [6]=1311}
-cnums = {['Cure'] = 1, ['Cure II'] = 2, ['Cure III'] = 3, ['Cure IV'] = 4, ['Cure V'] = 5, ['Cure VI'] = 6}
-ncures = {'Cure','Cure II','Cure III','Cure IV','Cure V','Cure VI'}
-npcs = S{'Joachim', 'Ulmia', 'Cherukiki'}
-
 function cureSomeone(player)
 	local hpTable = getMissingHps()
 	local curee = getMemberWithMostHpMissing(hpTable)
@@ -12,9 +7,10 @@ function cureSomeone(player)
 			local spell = res.spells:with('en', ncures[ncnum])
 			if (windower.ffxi.get_spell_recasts()[spell.recast_id] == 0) then
 				if (player.vitals.mp >= spell.mp_cost) then
-					windower.add_to_chat(0, "HealBot: "..spell.en.." "..rarr.." "..curee.name.."("..curee.missing..")")
+					atcd(spell.en..' '..rarr..' '..curee.name..'('..curee.missing..')')
 					windower.send_command('input '..spell.prefix..' "'..spell.en..'" '..curee.name)
-					actionDelay = spell.cast_time
+					actionDelay = 0.5
+					--actionDelay = spell.cast_time
 					return true
 				end
 			end
@@ -38,7 +34,6 @@ function determineHighestCureTier()
 			end
 		end
 	end
-	windower.add_to_chat(0, highestTier)
 	return highestTier
 end
 
@@ -65,7 +60,7 @@ end
 function getMemberWithMostHpMissing(party)
 	local curee = {['missing']=0}
 	for n,p in pairs(party) do
-		if (p.missing > curee.missing) and (p.hpp < 95) and (not npcs:contains(n)) then
+		if (p.missing > curee.missing) and (p.hpp < 95) then
 			curee.name = n
 			curee.missing = p.missing
 		end
@@ -96,3 +91,15 @@ function getMissingHps()
 	end
 	return hpTable
 end
+
+-----------------------------------------------------------------------------------------------------------
+--[[
+Copyright © 2015, Lorand
+All rights reserved.
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of healBot nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Lorand BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+--]]
+-----------------------------------------------------------------------------------------------------------
