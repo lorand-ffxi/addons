@@ -108,6 +108,17 @@ function processCommand(command,...)
 		end
 	elseif S{'ignore', 'unignore', 'watch', 'unwatch'}:contains(command) then
 		monitorCommand(command, args[1])
+	elseif command == 'ignoretrusts' then
+		if not validate(args, 1, 'Error: No argument specified for IgnoreTrusts') then return end
+		if args[1]:lower() == 'on' then
+			atc('Will ignore Trust NPCs')
+			ignoreTrusts = true
+		elseif args[1]:lower() == 'off' then
+			atc('Will not ignore Trust NPCs')
+			ignoreTrusts = false
+		else
+			atc('Invalid argunment for IgnoreTrusts: '..args[1])
+		end
 	elseif command == 'status' then
 		printStatus()
 	elseif command == 'info' then

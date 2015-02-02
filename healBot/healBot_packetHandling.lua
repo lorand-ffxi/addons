@@ -55,7 +55,7 @@ function processAction(ai, actor, monitoring)
 						end
 					end
 					
-					registerEffect(tact, aname, tname, monitoring)
+					registerEffect(ai, tact, aname, tname, monitoring)
 				end--/message ID not on blacklist
 			end--/loop through targ's actions
 		end--/monitoring actor or target
@@ -107,7 +107,7 @@ end
 	@param tname the name of the PC that is the target of the action
 	@param monitoring the list of PCs that are being monitored
 --]]
-function registerEffect(tact, aname, tname, monitoring)
+function registerEffect(ai, tact, aname, tname, monitoring)
 	if monitoring[tname] then
 		if messages_magicDamage:contains(tact.message_id) then		--ai.param: spell; tact.param: damage
 			local spell = res.spells[ai.param]

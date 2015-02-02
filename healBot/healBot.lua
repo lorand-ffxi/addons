@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.3.2'
+_addon.version = '2.3.3'
 
 require('luau')
 rarr = string.char(129,168)
@@ -49,6 +49,7 @@ windower.register_event('load', function()
 	minCureTier = 3
 	lastActingState = false
 	partyMemberInfo = {}
+	ignoreTrusts = true
 end)
 
 windower.register_event('logout', function()
@@ -171,7 +172,8 @@ function canCast(spell)
 end
 
 function addPlayer(list, player)
-	if (player ~= nil) and (not (ignoreList:contains(player.name))) and (not (trusts:contains(player.name))) then
+	if (player ~= nil) and (not (ignoreList:contains(player.name))) then
+		if (ignoreTrusts and trusts:contains(player.name)) then return end
 		local status = player.mob and player.mob.status or player.status
 		if (S{2,3}:contains(status)) or (player.hpp <= 0) then
 			--Player is dead.  Reset their buff/debuff lists and don't include them in monitored list
