@@ -179,13 +179,18 @@ function formatSpellName(text)
 	end
 	
 	local parts = text:split(' ')
-	if #parts > 2 then
-		return nil
-	elseif #parts == 2 then
+	if #parts >= 2 then
 		local name = formatName(parts[1])
-		local tier = toRomanNumeral(parts[2])
-		tier = tier or parts[2]:upper()
-		return name..' '..tier
+		for p = 2, #parts do
+			local part = parts[p]
+			local tier = toRomanNumeral(part) or part:upper()
+			if (roman2dec[tier] == nil) then
+				name = name..' '..formatName(part)
+			else
+				name = name..' '..tier
+			end
+		end
+		return name
 	else
 		local name = formatName(text)
 		local tier = text:sub(-1)
@@ -213,7 +218,7 @@ function toRomanNumeral(val)
 			return nil
 		end
 	end
-	return romanNumerals[val]
+	return dec2roman[val]
 end
 
 function atc(text)

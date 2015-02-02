@@ -16,12 +16,12 @@
             <casting>false</casting> <!-- Prevents your "Jim begins casting ____" messages from appearing -->
             <damage>true</damage>    <!-- Prevents your damage from appearing -->
             <healing>true</healing>  <!-- Prevents your healing from appearing -->
-            <items>true</items>     <!-- Prevents your "Jim used an item. Jim gains the effect of Reraise." messages from appearing -->
+            <items>true</items>      <!-- Prevents your "Jim used an item. Jim gains the effect of Reraise." messages from appearing -->
             <melee>true</melee>      <!-- Prevents your melee ("white") damage from appearing -->
             <misses>true</misses>    <!-- Prevents your misses from appearing -->
             <ranged>true</ranged>    <!-- Prevents your ranged damage from appearing -->
             <readies>false</readies> <!-- Prevents your "Jim readies ____" messages from appearing -->
-            <target>true</target>   <!-- true = SHOW all actions where I am the target. -->
+            <target>true</target>    <!-- true = SHOW all actions where I am the target. -->
             <uses>false</uses>       <!-- Prevents your "Jim uses an item." messages from appearing -->
         </alliance>
         <me>
@@ -155,7 +155,7 @@
         </my_pet>
         <other_pets>
         <!-- He's targeting someone else's pet -->
-            <all>true</all>        <!-- Prevents all of your messages from appearing -->
+            <all>true</all>         <!-- Prevents all of your messages from appearing -->
             <casting>true</casting> <!-- Prevents your "Jim begins casting ____" messages from appearing -->
             <damage>true</damage>   <!-- Prevents your damage from appearing -->
             <healing>true</healing> <!-- Prevents your healing from appearing -->
@@ -163,7 +163,7 @@
             <misses>true</misses>   <!-- Prevents your misses from appearing -->
             <ranged>true</ranged>   <!-- Prevents your ranged damage from appearing -->
             <readies>true</readies> <!-- Prevents your "Jim readies ____" messages from appearing -->
-            <target>true</target>  <!-- true = SHOW all actions where I am the target. -->
+            <target>true</target>   <!-- true = SHOW all actions where I am the target. -->
         </other_pets>
         <others>
         <!-- He's targeting some guy nearby -->
@@ -176,8 +176,8 @@
             <misses>true</misses>   <!-- Prevents your misses from appearing -->
             <ranged>true</ranged>   <!-- Prevents your ranged damage from appearing -->
             <readies>true</readies> <!-- Prevents your "Jim readies ____" messages from appearing -->
-            <target>true</target>  <!-- true = SHOW all actions where I am the target. -->
-            <uses>true</uses>      <!-- Prevents your "Jim uses an item." messages from appearing -->
+            <target>true</target>   <!-- true = SHOW all actions where I am the target. -->
+            <uses>true</uses>       <!-- Prevents your "Jim uses an item." messages from appearing -->
         </others>
         <party>
         <!-- He's targeting a party member -->
@@ -190,7 +190,7 @@
             <misses>true</misses>    <!-- Prevents your misses from appearing -->
             <ranged>true</ranged>    <!-- Prevents your ranged damage from appearing -->
             <readies>false</readies> <!-- Prevents your "Jim readies ____" messages from appearing -->
-            <target>true</target>   <!-- true = SHOW all actions where I am the target. -->
+            <target>true</target>    <!-- true = SHOW all actions where I am the target. -->
             <uses>false</uses>       <!-- Prevents your "Jim uses an item." messages from appearing -->
         </party>
     </global>

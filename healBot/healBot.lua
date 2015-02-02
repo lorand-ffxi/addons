@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.3.0'
+_addon.version = '2.3.1'
 
 require('luau')
 rarr = string.char(129,168)
