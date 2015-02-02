@@ -1,16 +1,49 @@
 buffList = {}
 debuffList = {}
 
---TODO: Iterate through buffs that should be on self to make sure they are
+function get_active_buffs()
+	local activeBuffs = S{}
+	local player = windower.ffxi.get_player()
+	if (player ~= nil) then
+		for _,bid in pairs(player.buffs) do
+			local bname = res.buffs[bid]
+			activeBuffs[bid] = bname
+			activeBuffs[bname] = bid
+		end
+	end
+	return activeBuffs
+end
+
+function buffActive(...)
+	local args = {...}
+	local activeBuffs = get_active_buffs()
+	for _,buff in pairs(args) do
+		if activeBuffs:contains(buff) then
+			return true
+		end
+	end
+	return false
+end
 
 function checkOwnBuffs()
 	local player = windower.ffxi.get_player()
+	--Iterate through actually active buffs to register their presence
 	local activeBuffIds = player.buffs
 	for _,id in pairs(activeBuffIds) do
 		if (enfeebling:contains(id)) then
 			registerDebuff(player.name, res.buffs[id].en, true)
 		else
 			registerBuff(player.name, res.buffs[id].en, true)
+		end
+	end
+	--Iterate through buffs that should be active to make sure they are
+	local myBuffs = buffList[player.name]
+	if (myBuffs ~= nil) then
+		local activeBuffs = get_active_buffs()
+		for buff,info in pairs(myBuffs) do
+			if not activeBuffs:contains(buff) then
+				registerBuff(player.name, buff, false)
+			end
 		end
 	end
 end
@@ -33,18 +66,15 @@ function checkBuffs(player, buffList)
 				if (info.landed == nil) then
 					if (info.attempted == nil) or ((now - info.attempted) >= 3) then
 						if (windower.ffxi.get_spell_recasts()[spell.recast_id] == 0) and (player.vitals.mp >= spell.mp_cost) then
-							atc(spell.en..' '..rarr..' '..targ)
-							windower.send_command('input '..spell.prefix..' "'..spell.en..'" '..targ)
 							info.attempted = now
-							actionDelay = 0.6
-							return true
+							return {action = spell, targetName = targ}
 						end
 					end
 				end
 			end
 		end
 	end
-	return false
+	return nil
 end
 
 function checkDebuffs(player, debuffList)
@@ -57,11 +87,8 @@ function checkDebuffs(player, debuffList)
 					if (info.attempted == nil) or ((now - info.attempted) >= 3) then
 						local spell = res.spells:with('en', removalSpellName)
 						if (windower.ffxi.get_spell_recasts()[spell.recast_id] == 0) and (player.vitals.mp >= spell.mp_cost) then
-							atc(spell.en..' '..rarr..' '..targ)
-							windower.send_command('input '..spell.prefix..' "'..spell.en..'" '..targ)
 							info.attempted = now
-							actionDelay = 0.6
-							return true
+							return {action = spell, targetName = targ, msg = ' ('..debuff..')'}
 						end
 					end
 				else
@@ -70,7 +97,7 @@ function checkDebuffs(player, debuffList)
 			end
 		end
 	end
-	return false
+	return nil
 end
 
 function registerNewBuff(args, use)
@@ -89,6 +116,8 @@ function registerNewBuff(args, use)
 	if target == nil then
 		if (targetName == '<t>') then
 			target = windower.ffxi.get_mob_by_target()
+		elseif S{'<me>','me'}:contains(targetName) then
+			target = windower.ffxi.get_mob_by_id(me.id)
 		end
 		if target == nil then		
 			atc('Invalid buff target: '..targetName)
@@ -146,33 +175,38 @@ function registerNewBuff(args, use)
 end
 
 function getBuffForSpell(spellName)
-	local buffName = spellName
-	local spLoc = spellName:find(' ')
-	if (spLoc ~= nil) then
-		buffName = spellName:sub(1, spLoc-1)
+	if (buff_map[spellName] ~= nil) then
+		return buff_map[spellName]
+	else
+		local buffName = spellName
+		local spLoc = spellName:find(' ')
+		if (spLoc ~= nil) then
+			buffName = spellName:sub(1, spLoc-1)
+		end
+		return buffName
 	end
-	return buffName
 end
 
 function registerDebuff(targetName, debuffName, gain)
 	if debuffList[targetName] == nil then
 		debuffList[targetName] = {}
 	end
+	if (debuffName == 'slow') then
+		registerBuff(targetName, 'Haste', false)
+	end
+	
 	if gain then
 		local ignoreList = ignoreDebuffs[debuffName]
 		local pmInfo = partyMemberInfo[targetName]
 		if (ignoreList ~= nil) and (pmInfo ~= nil) then
-			if ignoreList:contains(pmInfo.job) or ignoreList:contains(pmInfo.subjob) then
+			if ignoreList:contains(pmInfo.job) and ignoreList:contains(pmInfo.subjob) then
 				atc('Ignoring '..debuffName..' on '..targetName..' because of their job')
 				return
 			end
 		end
 		
 		debuffList[targetName][debuffName] = {['landed']=os.clock()}
-		atcd('Detected debuff: '..debuffName..' '..rarr..' '..targetName)
-		if (debuffName == 'slow') then
-			registerBuff(targetName, 'Haste', false)
-		end
+		atcd('Detected debuff: '..debuffName..' '..rarr..' '..targetName)	
 	else
 		debuffList[targetName][debuffName] = nil
 		atcd('Detected debuff: '..debuffName..' wore off '..targetName)

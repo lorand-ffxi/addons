@@ -1,7 +1,16 @@
 _addon.name = 'eventScripts'
 _addon.author = 'Lorand'
 _addon.commands = {'eventScripts', 'escripts'}
-_addon.version = '0.2'
+_addon.version = '0.3'
+_addon.lastUpdate = '2015.01.31'
+
+--[[
+	EventScripts is a Windower addon for FFXI that is designed to provide both
+	general and character-specific logon script functionality.  Additionally, it
+	allows some level of event-based execution of commands like the old plugin
+	AutoExec.  The included example of this feature is to send a party invite to
+	a player after receiving a specific message in a tell from them.
+--]]
 
 config = require('config')
 
@@ -33,7 +42,7 @@ windower.register_event('addon command', function(command,...)
     local args = {...}
 	
 	if command == 'reload' then
-		windower.send_command('lua unload '.._addon.name..'; lua load '.._addon.name)
+		windower.send_command('lua reload '.._addon.name)
 	elseif command == 'unload' then
 		windower.send_command('lua unload '.._addon.name)
 	elseif command == 'addon' then
@@ -62,18 +71,18 @@ windower.register_event('login', 'load', function()
 	local player = windower.ffxi.get_player()
 	if player == nil then return end
 	pname = player.name:lower()
-	
+
 	if not settings[pname] then
 		settings[pname] = {login_cmds = {}, addons = {}, reactions = {}}
 	end
 	
 	local login_cmds = merge(settings.login_cmds, settings[pname].login_cmds)
-	for _,cmd in pairs(settings.login_cmds) do
+	for _,cmd in pairs(login_cmds) do
 		windower.send_command(cmd)
 	end
 	
 	local addons = merge(settings.addons, settings[pname].addons)
-	for addon,use in pairs(settings.addons) do
+	for addon,use in pairs(addons) do
 		local l = use and 'load ' or 'unload '
 		windower.send_command('lua '..l..addon)
 	end
@@ -91,3 +100,15 @@ function merge(...)
 	end
 	return newtab
 end
+
+-----------------------------------------------------------------------------------------------------------
+--[[
+Copyright © 2014-2015, Lorand
+All rights reserved.
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of eventScripts nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Lorand BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+--]]
+-----------------------------------------------------------------------------------------------------------

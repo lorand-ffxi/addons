@@ -2,28 +2,23 @@
 <settings>
     <global>
         <addons>
+            <gmmode>true</gmmode>
             <info>true</info>
             <infoboxes>true</infoboxes>
             <jponry>true</jponry>
-			<gmmode>true</gmmode>
         </addons>
         <login_cmds>
             <1>wait 5; input /chatmode party</1>
         </login_cmds>
-        <lorand>
-            <addons>
-            </addons>
-            <login_cmds>
-
-            </login_cmds>
-            <reactions>
-
-            </reactions>
-        </lorand>
         <reactions>
             <3>
                 <invitemenow_please>/pcmd add {sender}</invitemenow_please>
             </3>
         </reactions>
+        <tarulikefish>
+            <addons>
+                <autosynth>true</autosynth>
+            </addons>
+        </tarulikefish>
     </global>
 </settings>

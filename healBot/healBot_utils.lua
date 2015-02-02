@@ -184,7 +184,7 @@ function formatSpellName(text)
 	elseif #parts == 2 then
 		local name = formatName(parts[1])
 		local tier = toRomanNumeral(parts[2])
-		tier = tier and tier or parts[2]:upper()
+		tier = tier or parts[2]:upper()
 		return name..' '..tier
 	else
 		local name = formatName(text)

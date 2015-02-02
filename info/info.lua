@@ -1,30 +1,66 @@
 _addon.name = 'info'
 _addon.author = 'Lorand'
 _addon.command = 'info'
-_addon.version = '1.21'
+_addon.version = '1.3'
+_addon.lastUpdate = '2015.02.01'
+
+--[[
+	Info is a Windower addon for FFXI that is designed to allow users to view
+	data that is available to Windower from within the game.
+--]]
 
 require('luau')
 res = require('resources')
 packets = require('packets')
 
 local showKB = false
+local showAnActionPacket = false
 
 windower.register_event('addon command', function (command,...)
     command = command or 'help'
     local args = {...}
 	
 	if command:lower() == 'reload' then
-		windower.send_command('lua unload '.._addon.name..'; lua load '.._addon.name)
+		windower.send_command('lua reload '.._addon.name)
 	elseif command:lower() == 'unload' then
 		windower.send_command('lua unload '.._addon.name)
 	elseif command:lower() == 'showkb' then
 		showKB = not showKB
+	elseif command:lower() == 'actionpacket' then
+		showAnActionPacket = true
+	elseif command:lower() == 'search' then
+		local target = args[1]
+		local field = args[2]
+		local val = args[3]
+		if (target ~= nil) and (field ~= nil) and (val ~= nil) then
+			local parsed = parseInput(target)
+			local results = parsed:with(field, val)
+			if (results ~= nil) then
+				printInfo(parsed:with(field, val), target..':with('..field..','..val..')')
+			else
+				windower.add_to_chat(2, target..':with('..field..','..val..'): No results.')
+			end
+		else
+			windower.add_to_chat(0, 'Error: Invalid arguments passed for search')
+		end
 	else
 		local cmd = parseInput(command)
 		if cmd ~= nil then
 			printInfo(cmd, command)
 		else
 			windower.add_to_chat(0, 'Error: Unable to parse valid command')
+		end
+	end
+end)
+
+windower.register_event('incoming chunk', function(id,data)
+	if showAnActionPacket then
+		if id == 0x28 then
+			local parsed = packets.parse('incoming', data)
+			printInfo(parsed, 'Action Packet (0x028)')
+			if parsed['Target 1 Action 1 Message'] == 230 then
+				showAnActionPacket = false
+			end
 		end
 	end
 end)
@@ -101,7 +137,7 @@ end
 
 -----------------------------------------------------------------------------------------------------------
 --[[
-Copyright © 2014, Lorand
+Copyright © 2014-2015, Lorand
 All rights reserved.
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
     * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.

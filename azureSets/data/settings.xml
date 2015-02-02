@@ -99,6 +99,23 @@
                 <slot17>dark orb</slot17>
                 <slot18>magic barrier</slot18>
             </failtest>
+            <newbase>
+                <slot01>thrashing assault</slot01>
+                <slot02>heavy strike</slot02>
+                <slot03>empty thrash</slot03>
+                <slot04>sudden lunge</slot04>
+                <slot05>fantod</slot05>
+                <slot06>erratic flutter</slot06>
+                <slot07>barbed crescent</slot07>
+                <slot08>mortal ray</slot08>
+                <slot09>delta thrust</slot09>
+                <slot10>quad. continuum</slot10>
+                <slot11>blazing bound</slot11>
+                <slot12>animating wail</slot12>
+                <slot13>winds of promy.</slot13>
+                <slot14>actinic burst</slot14>
+                <slot15>whirl of rage</slot15>
+            </newbase>
             <oldset>
                 <slot01>actinic burst</slot01>
                 <slot02>winds of promy.</slot02>

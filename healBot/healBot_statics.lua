@@ -22,6 +22,8 @@ spells_trust = S{896,897,898,899,900,901,902,903,904,905,906,907,908,909,910,911
 
 enfeebling = T{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,155,156,157,158,159,167,168,174,175,177,186,189,192,193,194,223,259,260,261,262,263,264,298,378,379,380,386,387,388,389,390,391,392,393,394,395,396,397,398,399,400,404,448,449,450,451,452,473,540,557,558,559,560,561,562,563,564,565,566,567}
 
+buff_map = {['Barfira']='Barfire',['Barblizzara']='Barblizzard',['Baraera']='Baraero',['Barstonra']='Barstone',['Barthundra']='Barthunder',['Barwatera']='Barwater',['Baramnesra']='Baramnesia',['Barsleepra']='Barsleep',['Barpoisonra']='Barpoison',['Barparalyzra']='Barparalyze',['Barblindra']='Barblind',['Barsilencera']='Barsilence',['Barpetra']='Barpetrify',['Barvira']='Barvirus',['Blaze Spikes']='Blaze Spikes',['Ice Spikes']='Ice Spikes',['Shock Spikes']='Shock Spikes',['Dread Spikes']='Dread Spikes',['Boost-STR']='STR Boost',['Boost-DEX']='DEX Boost',['Boost-VIT']='VIT Boost',['Boost-AGI']='AGI Boost',['Boost-INT']='INT Boost',['Boost-MND']='MND Boost',['Boost-CHR']='CHR Boost',['Gain-STR']='STR Boost',['Gain-DEX']='DEX Boost',['Gain-VIT']='VIT Boost',['Gain-AGI']='AGI Boost',['Gain-INT']='INT Boost',['Gain-MND']='MND Boost',['Gain-CHR']='CHR Boost',['Temper']='Multi Strikes',['Enfire II']='Enfire II',['Enblizzard II']='Enblizzard II',['Enaero II']='Enaero II',['Enstone II']='Enstone II',['Enthunder II']='Enthunder II',['Enwater II']='Enwater II'}
+
 debuff_map = {
 	['Accuracy Down'] = 'Erase',	['addle'] = 'Erase',			['AGI Down'] = 'Erase',				['Attack Down'] = 'Erase',
 	['bind'] = 'Erase',				['Bio'] = 'Erase',				['blindness'] = 'Blindna',			['Burn'] = 'Erase',
@@ -66,9 +68,9 @@ ignoreDebuffs = {
 
 romanNumerals = {'I','II','III','IV','V','VI','VII','VIII','IX','X','XI'}
 
-potencies = {[1]=87, [2]=199, [3]=438, [4]=816, [5]=1056, [6]=1311}
-cnums = {['Cure'] = 1, ['Cure II'] = 2, ['Cure III'] = 3, ['Cure IV'] = 4, ['Cure V'] = 5, ['Cure VI'] = 6}
-ncures = {'Cure','Cure II','Cure III','Cure IV','Cure V','Cure VI'}
+cure_potencies = {[1]=87, [2]=199, [3]=438, [4]=816, [5]=1056, [6]=1311}
+tier_of_cure = {['Cure'] = 1, ['Cure II'] = 2, ['Cure III'] = 3, ['Cure IV'] = 4, ['Cure V'] = 5, ['Cure VI'] = 6}
+cure_of_tier = {'Cure','Cure II','Cure III','Cure IV','Cure V','Cure VI'}
 
 -----------------------------------------------------------------------------------------------------------
 --[[

@@ -106,6 +106,16 @@ function handle_incoming_chunk(id, data)
 									elseif S{591}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Bewildered Daze (lv.${number}).
 										--registerDebuff(tname, 'Bewildered Daze', true)
 									end
+								elseif tact.message_id == 185 then
+									local mabil = res.monster_abilities[ai.param]
+									if (mabil ~= nil) then
+										if mabil.en == 'Bad Breath' then
+											registerDebuff(tname, 'silence', true)
+											registerDebuff(tname, 'blindness', true)
+											registerDebuff(tname, 'paralysis', true)
+											registerDebuff(tname, 'poison', true)
+										end
+									end
 								end--/message ID checks
 							end--/monitoring target of action
 							

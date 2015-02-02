@@ -1,10 +1,11 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.2.1'
+_addon.version = '2.3.0'
 
 require('luau')
 rarr = string.char(129,168)
+sparr = ' '..rarr..' '
 res = require('resources')
 config = require('config')
 texts = require('texts')
@@ -75,15 +76,23 @@ windower.register_event('prerender', function()
 		
 		local busy = moving or acting
 		if active and (not busy) and ((now - lastAction) > actionDelay) then
-			if not cureSomeone(player) then						--Curing is 1st priority
-				if not checkDebuffs(player, debuffList) then	--Debuff removal is 2nd priority
-					checkBuffs(player, buffList)				--Buffing is 3rd priority
-				end
+			local action = cureSomeone() or checkDebuffs(player, debuffList) or checkBuffs(player, buffList)
+			if (action ~= nil) then
+				local spell = action.action
+				local tname = action.targetName
+				local msg = action.msg or ''
+				atcd(spell.en..sparr..tname..msg)
+				wcmd(spell.prefix, spell.en, tname)
 			end
 			lastAction = now
 		end
 	end
 end)
+
+function wcmd(prefix, action, target)
+	windower.send_command('input '..prefix..' "'..action..'" '..target)
+	actionDelay = 0.6
+end
 
 function activate()
 	local player = windower.ffxi.get_player()
@@ -121,6 +130,11 @@ function isMoving()
 end
 
 function isPerformingAction(moving)
+	if (os.clock() - actionStart) > 8 then
+		--Precaution in case an action completion isn't registered for a long time
+		actionEnd = os.clock()
+	end
+	
 	local acting = (actionEnd < actionStart)
 	local status = acting and 'Performing an Action' or (moving and 'Moving' or 'Idle')
 	
@@ -156,30 +170,42 @@ function canCast(spell)
 	return spellAvailable and (mainCanCast or subCanCast)
 end
 
+function addPlayer(list, player)
+	if (player ~= nil) and (not (ignoreList:contains(player.name))) and (not (trusts:contains(player.name))) then
+		local status = player.mob and player.mob.status or player.status
+		if (S{2,3}:contains(status)) or (player.hpp <= 0) then
+			--Player is dead.  Reset their buff/debuff lists and don't include them in monitored list
+			resetDebuffTimers(player.name)
+			resetBuffTimers(player.name)
+		else
+			list[player.name] = player
+		end
+	end
+end
+
 function getMonitoredPlayers()
 	local pt = windower.ffxi.get_party()
-	local pty = {pt.p0,pt.p1,pt.p2,pt.p3,pt.p4,pt.p5}
 	local me = pt.p0
 	local targets = S{}
+	
+	local pty = {pt.p0,pt.p1,pt.p2,pt.p3,pt.p4,pt.p5}
 	for _,player in pairs(pty) do
-		if (player ~= nil) and (not ignoreList:contains(player.name)) and (me.zone == player.zone) then
-			if (not trusts:contains(player.name)) then
-				targets[player.name] = player
-			end
+		if (me.zone == player.zone) then
+			addPlayer(targets, player)
 		end
 	end
 	
 	local alliance = {pt.a10,pt.a11,pt.a12,pt.a13,pt.a14,pt.a15,pt.a20,pt.a21,pt.a22,pt.a23,pt.a24,pt.a25}
 	for _,ally in pairs(alliance) do
 		if (ally ~= nil) and (extraWatchList:contains(ally.name)) and (me.zone == ally.zone) then
-			targets[ally.name] = ally
+			addPlayer(targets, ally)
 		end
 	end
 	
 	for extraName,_ in pairs(extraWatchList) do
 		local extraPlayer = windower.ffxi.get_mob_by_name(extraName)
-		if (extraPlayer ~= nil) and (not targets:contains(extraPlayer.name)) then
-			targets[extraPlayer.name] = extraPlayer
+		if (extraPlayer ~= nil) and (not targets:contains(extraPlayer.name)) and (me.zone == extraPlayer.zone) then
+			addPlayer(targets, extraPlayer)
 		end
 	end
 	return targets
