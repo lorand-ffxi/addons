@@ -44,6 +44,8 @@ Command:                            Action:
 //hb unignore charName              Stop ignoring player charName (note: will not watch a player that would not otherwise be watched)
 //hb watch charName                 Watch player charName so they will be healed
 //hb unwatch charName               Stop watching player charName (note: will not ignore a player that would be otherwise watched)
+//hb ignoretrusts on                Ignore Trust NPCs
+//hb ignoretrusts off               Heal Trust NPCs
 
 Debugging commands:                 Action:
 //hb moveinfo on                    Will display current (x,y,z) position and the amount of time spent at that location in the upper left corner.
