@@ -105,7 +105,8 @@ function registerNewBuff(args, use)
 	local targetName = args[1] and args[1] or ''
 	local spellA = args[2] and args[2] or ''
 	local spellB = args[3] and ' '..args[3] or ''
-	local spellName = formatSpellName(spellA..spellB)
+	local spellC = args[4] and ' '..args[4] or ''
+	local spellName = formatSpellName(spellA..spellB..spellC)
 	
 	if spellName == nil then
 		atc('Error: Unable to parse spell name')
