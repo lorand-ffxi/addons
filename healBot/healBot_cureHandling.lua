@@ -29,28 +29,6 @@ function cureSomeone()
 end
 
 --[[
-	Returns the tier of the highest potency Cure spell that the player is
-	currently able to cast.
---]]
-function determineHighestCureTier()
-	local highestTier = 0
-	for id, avail in pairs(windower.ffxi.get_spells()) do
-		if avail then
-			local spell = res.spells[id]
-			if S(cure_of_tier):contains(spell.en) then
-				if canCast(spell) then
-					local tier = tier_of_cure[spell.en]
-					if tier > highestTier then
-						highestTier = tier
-					end
-				end				
-			end
-		end
-	end
-	return highestTier
-end
-
---[[
 	Returns the spell info for the tier of Cure that should/can be used based on
 	the amount of HP that the target is missing, the player's current MP, and
 	the player's recast timers.
@@ -104,7 +82,6 @@ function cureCostMod()
 	local p = windower.ffxi.get_player()			--Get player info
 	local mpMult = 1					--Default multiplier is 1
 	if S{p.job, p.sub_job}:contains('SCH') then		--If SCH is main or sub job
-		local activeBuffs = get_active_buffs()			--Get list of active buffs
 		if buffActive('Light Arts','Addendum: White') then	--If Light Arts is active
 			mpMult = 0.9						--MP cost is 10% lower
 			if buffActive('Penury') then				--If Penury is active
@@ -152,6 +129,28 @@ function getMissingHps()
 		hpTable[trg.name] = {['missing']=hpMissing, ['hpp']=trg.hpp}	--Store their info in the table
 	end
 	return hpTable							--Return the table with players' HP info
+end
+
+--[[
+	Returns the tier of the highest potency Cure spell that the player is
+	currently able to cast.
+--]]
+function determineHighestCureTier()
+	local highestTier = 0
+	for id, avail in pairs(windower.ffxi.get_spells()) do
+		if avail then
+			local spell = res.spells[id]
+			if S(cure_of_tier):contains(spell.en) then
+				if canCast(spell) then
+					local tier = tier_of_cure[spell.en]
+					if tier > highestTier then
+						highestTier = tier
+					end
+				end				
+			end
+		end
+	end
+	return highestTier
 end
 
 -----------------------------------------------------------------------------------------------------------

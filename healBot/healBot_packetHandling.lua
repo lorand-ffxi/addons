@@ -4,161 +4,17 @@
 	@param data raw packet contents
 --]]
 function handle_incoming_chunk(id, data)
-	if S{0x28,0x29}:contains(id) then
+	if S{0x28,0x29}:contains(id) then	--Action / Action Message
 		local monitoring = getMonitoredPlayers()
 		local ai = get_action_info(id, data)
 		local actor = windower.ffxi.get_mob_by_id(ai.actor_id)
-		local aname = actor.name
 		
 		if id == 0x28 then
-			for _,targ in pairs(ai.targets) do
-				local target = windower.ffxi.get_mob_by_id(targ.id)
-				local tname = target.name
-				
-				if (monitoring[aname] or monitoring[tname]) then
-					for _,tact in pairs(targ.actions) do
-						if not (messages_blacklist:contains(tact.message_id)) then
-							if showPacketInfo then
-								local msg = res.action_messages[tact.message_id] or {en='???'}
-								atc('[0x28]Action('..tact.message_id..'): '..aname..' { '..ai.param..' } '..rarr..' '..tname..' { '..tact.param..' } | '..msg.en)
-							end
-							
-							if windower.ffxi.get_player().name == aname then
-								if messages_initiating:contains(tact.message_id) then
-									actionStart = os.clock()
-								elseif messages_completing:contains(tact.message_id) then
-									actionEnd = os.clock()
-								end
-							end
-							
-							if monitoring[tname] then
-								if messages_magicDamage:contains(tact.message_id) then		--ai.param: spell; tact.param: damage
-									local spell = res.spells[ai.param]
-									if S{230,231,232,233,234}:contains(ai.param) then
-										registerDebuff(tname, 'Bio', true)
-									elseif S{23,24,25,26,27,33,34,35,36,37}:contains(ai.param) then
-										registerDebuff(tname, 'Dia', true)
-									end
-								elseif messages_gainEffect:contains(tact.message_id) then	--ai.param: spell; tact.param: buff/debuff
-									local buff = res.buffs[tact.param]
-									if enfeebling:contains(tact.param) then
-										registerDebuff(tname, buff.en, true)
-									else
-										registerBuff(tname, buff.en, true)
-									end
-								elseif messages_loseEffect:contains(tact.message_id) then	--ai.param: spell; tact.param: buff/debuff
-									local buff = res.buffs[tact.param]
-									if enfeebling:contains(tact.param) then
-										registerDebuff(tname, buff.en, false)
-									else
-										registerBuff(tname, buff.en, false)
-									end
-								elseif messages_noEffect:contains(tact.message_id) then		--ai.param: spell; tact.param: buff/debuff
-									local spell = res.spells[ai.param]
-									if (spell ~= nil) then
-										if spells_statusRemoval:contains(spell.id) then
-											local debuffs = removal_map[spell.en]
-											if (debuffs ~= nil) then
-												for _,debuff in pairs(debuffs) do
-													registerDebuff(tname, debuff, false)
-												end
-											end
-										elseif spells_buffs:contains(spell.id) then
-											local bname = getBuffForSpell(spell.en)
-											registerBuff(tname, bname, false)
-										end
-									end
-								elseif messages_nonGeneric:contains(tact.message_id) then
-									if S{142,144,145}:contains(tact.message_id) then--${target} receives the effect of Accuracy Down and Evasion Down.
-										registerDebuff(tname, 'Accuracy Down', true)
-										registerDebuff(tname, 'Evasion Down', true)
-									elseif S{329}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s STR is drained
-										registerDebuff(tname, 'STR Down', true)
-									elseif S{330}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s DEX is drained
-										registerDebuff(tname, 'DEX Down', true)
-									elseif S{331}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s VIT is drained
-										registerDebuff(tname, 'VIT Down', true)
-									elseif S{332}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s AGI is drained
-										registerDebuff(tname, 'AGI Down', true)
-									elseif S{333}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s INT is drained
-										registerDebuff(tname, 'INT Down', true)
-									elseif S{334}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s MND is drained
-										registerDebuff(tname, 'MND Down', true)
-									elseif S{335}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s CHR is drained
-										registerDebuff(tname, 'CHR Down', true)
-									elseif S{351}:contains(tact.message_id) then	--The remedy removes ${target}'s status ailments.
-										registerDebuff(tname, 'blindness', false)
-										registerDebuff(tname, 'paralysis', false)
-										registerDebuff(tname, 'poison', false)
-										registerDebuff(tname, 'silence', false)
-									elseif S{359}:contains(tact.message_id) then	--${target} narrowly escapes impending doom.
-										registerDebuff(tname, 'doom', false)
-									elseif S{519}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Lethargic Daze (lv.${number}).
-										--registerDebuff(tname, 'Lethargic Daze', true)
-									elseif S{520}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Sluggish Daze (lv.${number}).
-										--registerDebuff(tname, 'Sluggish Daze', true)
-									elseif S{521}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Weakened Daze (lv.${number}).
-										--registerDebuff(tname, 'Weakened Daze', true)
-									elseif S{533}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s Accuracy is drained.
-										registerDebuff(tname, 'Accuracy Down', true)
-									elseif S{534}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s Attack is drained.
-										registerDebuff(tname, 'Attack Down', true)
-									elseif S{591}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Bewildered Daze (lv.${number}).
-										--registerDebuff(tname, 'Bewildered Daze', true)
-									end
-								elseif tact.message_id == 185 then
-									local mabil = res.monster_abilities[ai.param]
-									if (mabil ~= nil) then
-										if mabil.en == 'Bad Breath' then
-											registerDebuff(tname, 'silence', true)
-											registerDebuff(tname, 'blindness', true)
-											registerDebuff(tname, 'paralysis', true)
-											registerDebuff(tname, 'poison', true)
-										end
-									end
-								end--/message ID checks
-							end--/monitoring target of action
-							
-							if monitoring[aname] then
-								if messages_paralyzed:contains(tact.message_id) then
-									registerDebuff(aname, 'paralysis', true)
-								end
-							end--/monitoring actor
-						end--/message ID not on blacklist
-					end--/loop through targ's actions
-				end--/monitoring actor or target
-			end--/loop through action's targets
+			processAction(ai, actor, monitoring)
 		elseif id == 0x29 then
-			local target = windower.ffxi.get_mob_by_id(ai.target_id)
-			local tname = target.name
-			if (monitoring[aname] or monitoring[tname]) then
-				if not (messages_blacklist:contains(ai.message_id)) then
-					if showPacketInfo then
-						local msg = res.action_messages[ai.message_id] or {en='???'}
-						local params = tostring(ai.param_1)..', '..tostring(ai.param_2)..', '..tostring(ai.param_3)
-						atc('[0x29]Message('..ai.message_id..'): '..aname..' { '..params..' } '..rarr..' '..tname..' | '..msg.en)
-					end
-					
-					if windower.ffxi.get_player().name == aname then
-						if messages_initiating:contains(ai.message_id) then
-							actionStart = os.clock()
-						elseif messages_completing:contains(ai.message_id) then
-							actionEnd = os.clock()
-						end
-					end
-					
-					if messages_wearOff:contains(ai.message_id) then
-						local buff = res.buffs[ai.param_1]
-						if enfeebling:contains(ai.param_1) then
-							registerDebuff(tname, buff.en, false)
-						else
-							registerBuff(tname, buff.en, false)
-						end
-					end--/message ID checks
-				end--/message ID not on blacklist
-			end--/monitoring actor or target
-		end--/packet ID checks
-	elseif id == 0x0DD then	--Party member update
+			processMessage(ai, actor, monitoring)
+		end
+	elseif id == 0x0DD then			--Party member update
 		local parsed = packets.parse('incoming', data)
 		local pmName = parsed.Name
 		local pmJobId = parsed['Main job']
@@ -168,7 +24,183 @@ function handle_incoming_chunk(id, data)
 		end
 		partyMemberInfo[pmName].job = res.jobs[pmJobId].ens
 		partyMemberInfo[pmName].subjob = res.jobs[pmSubJobId].ens
-	end--/packet id check
+	end
+end
+
+--[[
+	Process the information that was parsed from an action packet
+	@param ai action info
+	@param actor the PC/NPC initiating the action
+	@param monitoring the list of PCs that are being monitored
+--]]
+function processAction(ai, actor, monitoring)
+	local aname = actor.name
+	for _,targ in pairs(ai.targets) do
+		local target = windower.ffxi.get_mob_by_id(targ.id)
+		local tname = target.name
+		
+		if (monitoring[aname] or monitoring[tname]) then
+			for _,tact in pairs(targ.actions) do
+				if not (messages_blacklist:contains(tact.message_id)) then
+					if showPacketInfo then
+						local msg = res.action_messages[tact.message_id] or {en='???'}
+						atc('[0x28]Action('..tact.message_id..'): '..aname..' { '..ai.param..' } '..rarr..' '..tname..' { '..tact.param..' } | '..msg.en)
+					end
+					
+					if windower.ffxi.get_player().name == aname then
+						if messages_initiating:contains(tact.message_id) then
+							actionStart = os.clock()
+						elseif messages_completing:contains(tact.message_id) then
+							actionEnd = os.clock()
+						end
+					end
+					
+					registerEffect(tact, aname, tname, monitoring)
+				end--/message ID not on blacklist
+			end--/loop through targ's actions
+		end--/monitoring actor or target
+	end--/loop through action's targets
+end
+
+--[[
+	Process the information that was parsed from an action message packet
+	@param ai action info
+	@param actor the PC/NPC initiating the action
+	@param monitoring the list of PCs that are being monitored
+--]]
+function processMessage(ai, actor, monitoring)
+	local aname = actor.name
+	local target = windower.ffxi.get_mob_by_id(ai.target_id)
+	local tname = target.name
+	if (monitoring[aname] or monitoring[tname]) then
+		if not (messages_blacklist:contains(ai.message_id)) then
+			if showPacketInfo then
+				local msg = res.action_messages[ai.message_id] or {en='???'}
+				local params = tostring(ai.param_1)..', '..tostring(ai.param_2)..', '..tostring(ai.param_3)
+				atc('[0x29]Message('..ai.message_id..'): '..aname..' { '..params..' } '..rarr..' '..tname..' | '..msg.en)
+			end
+			
+			if windower.ffxi.get_player().name == aname then
+				if messages_initiating:contains(ai.message_id) then
+					actionStart = os.clock()
+				elseif messages_completing:contains(ai.message_id) then
+					actionEnd = os.clock()
+				end
+			end
+			
+			if messages_wearOff:contains(ai.message_id) then
+				local buff = res.buffs[ai.param_1]
+				if enfeebling:contains(ai.param_1) then
+					registerDebuff(tname, buff.en, false)
+				else
+					registerBuff(tname, buff.en, false)
+				end
+			end--/message ID checks
+		end--/message ID not on blacklist
+	end--/monitoring actor or target
+end
+
+--[[
+	Register the effects that were discovered in an action packet
+	@param tact the subaction on a target
+	@param aname the name of the PC/NPC initiating the action
+	@param tname the name of the PC that is the target of the action
+	@param monitoring the list of PCs that are being monitored
+--]]
+function registerEffect(tact, aname, tname, monitoring)
+	if monitoring[tname] then
+		if messages_magicDamage:contains(tact.message_id) then		--ai.param: spell; tact.param: damage
+			local spell = res.spells[ai.param]
+			if S{230,231,232,233,234}:contains(ai.param) then
+				registerDebuff(tname, 'Bio', true)
+			elseif S{23,24,25,26,27,33,34,35,36,37}:contains(ai.param) then
+				registerDebuff(tname, 'Dia', true)
+			end
+		elseif messages_gainEffect:contains(tact.message_id) then	--ai.param: spell; tact.param: buff/debuff
+			local buff = res.buffs[tact.param]
+			if enfeebling:contains(tact.param) then
+				registerDebuff(tname, buff.en, true)
+			else
+				registerBuff(tname, buff.en, true)
+			end
+		elseif messages_loseEffect:contains(tact.message_id) then	--ai.param: spell; tact.param: buff/debuff
+			local buff = res.buffs[tact.param]
+			if enfeebling:contains(tact.param) then
+				registerDebuff(tname, buff.en, false)
+			else
+				registerBuff(tname, buff.en, false)
+			end
+		elseif messages_noEffect:contains(tact.message_id) then		--ai.param: spell; tact.param: buff/debuff
+			local spell = res.spells[ai.param]
+			if (spell ~= nil) then
+				if spells_statusRemoval:contains(spell.id) then
+					local debuffs = removal_map[spell.en]
+					if (debuffs ~= nil) then
+						for _,debuff in pairs(debuffs) do
+							registerDebuff(tname, debuff, false)
+						end
+					end
+				elseif spells_buffs:contains(spell.id) then
+					local bname = getBuffForSpell(spell.en)
+					registerBuff(tname, bname, false)
+				end
+			end
+		elseif messages_nonGeneric:contains(tact.message_id) then
+			if S{142,144,145}:contains(tact.message_id) then--${target} receives the effect of Accuracy Down and Evasion Down.
+				registerDebuff(tname, 'Accuracy Down', true)
+				registerDebuff(tname, 'Evasion Down', true)
+			elseif S{329}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s STR is drained
+				registerDebuff(tname, 'STR Down', true)
+			elseif S{330}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s DEX is drained
+				registerDebuff(tname, 'DEX Down', true)
+			elseif S{331}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s VIT is drained
+				registerDebuff(tname, 'VIT Down', true)
+			elseif S{332}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s AGI is drained
+				registerDebuff(tname, 'AGI Down', true)
+			elseif S{333}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s INT is drained
+				registerDebuff(tname, 'INT Down', true)
+			elseif S{334}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s MND is drained
+				registerDebuff(tname, 'MND Down', true)
+			elseif S{335}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s CHR is drained
+				registerDebuff(tname, 'CHR Down', true)
+			elseif S{351}:contains(tact.message_id) then	--The remedy removes ${target}'s status ailments.
+				registerDebuff(tname, 'blindness', false)
+				registerDebuff(tname, 'paralysis', false)
+				registerDebuff(tname, 'poison', false)
+				registerDebuff(tname, 'silence', false)
+			elseif S{359}:contains(tact.message_id) then	--${target} narrowly escapes impending doom.
+				registerDebuff(tname, 'doom', false)
+			elseif S{519}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Lethargic Daze (lv.${number}).
+				--registerDebuff(tname, 'Lethargic Daze', true)
+			elseif S{520}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Sluggish Daze (lv.${number}).
+				--registerDebuff(tname, 'Sluggish Daze', true)
+			elseif S{521}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Weakened Daze (lv.${number}).
+				--registerDebuff(tname, 'Weakened Daze', true)
+			elseif S{533}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s Accuracy is drained.
+				registerDebuff(tname, 'Accuracy Down', true)
+			elseif S{534}:contains(tact.message_id) then	--${actor} casts ${spell}.${lb}${target}'s Attack is drained.
+				registerDebuff(tname, 'Attack Down', true)
+			elseif S{591}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Bewildered Daze (lv.${number}).
+				--registerDebuff(tname, 'Bewildered Daze', true)
+			end
+		elseif tact.message_id == 185 then
+			local mabil = res.monster_abilities[ai.param]
+			if (mabil ~= nil) then
+				if mabil.en == 'Bad Breath' then
+					registerDebuff(tname, 'silence', true)
+					registerDebuff(tname, 'blindness', true)
+					registerDebuff(tname, 'paralysis', true)
+					registerDebuff(tname, 'poison', true)
+				end
+			end
+		end--/message ID checks
+	end--/monitoring target of action
+	
+	if monitoring[aname] then
+		if messages_paralyzed:contains(tact.message_id) then
+			registerDebuff(aname, 'paralysis', true)
+		end
+	end--/monitoring actor
 end
 
 --[[
@@ -187,9 +219,9 @@ function get_action_info(id, data)
         act.actor_id	= get_bit_packed(data,8,40)
         act.target_count= get_bit_packed(data,40,50)
         act.category	= get_bit_packed(data,50,54)
-        act.param		= get_bit_packed(data,54,70)
-        act.unknown		= get_bit_packed(data,70,86)
-        act.recast		= get_bit_packed(data,86,118)
+        act.param	= get_bit_packed(data,54,70)
+        act.unknown	= get_bit_packed(data,70,86)
+        act.recast	= get_bit_packed(data,86,118)
         act.targets = {}
         local offset = 118
         for i = 1, act.target_count do
@@ -200,24 +232,24 @@ function get_action_info(id, data)
             act.targets[i].actions = {}
             for n = 1,act.targets[i].action_count do
                 act.targets[i].actions[n] = {}
-                act.targets[i].actions[n].reaction		= get_bit_packed(data,offset,offset+5)
-                act.targets[i].actions[n].animation		= get_bit_packed(data,offset+5,offset+16)
-                act.targets[i].actions[n].effect		= get_bit_packed(data,offset+16,offset+21)
-                act.targets[i].actions[n].stagger		= get_bit_packed(data,offset+21,offset+27)
-                act.targets[i].actions[n].param			= get_bit_packed(data,offset+27,offset+44)
+                act.targets[i].actions[n].reaction	= get_bit_packed(data,offset,offset+5)
+                act.targets[i].actions[n].animation	= get_bit_packed(data,offset+5,offset+16)
+                act.targets[i].actions[n].effect	= get_bit_packed(data,offset+16,offset+21)
+                act.targets[i].actions[n].stagger	= get_bit_packed(data,offset+21,offset+27)
+                act.targets[i].actions[n].param		= get_bit_packed(data,offset+27,offset+44)
                 act.targets[i].actions[n].message_id	= get_bit_packed(data,offset+44,offset+54)
-                act.targets[i].actions[n].unknown		= get_bit_packed(data,offset+54,offset+85)
+                act.targets[i].actions[n].unknown	= get_bit_packed(data,offset+54,offset+85)
                 act.targets[i].actions[n].has_add_efct	= get_bit_packed(data,offset+85,offset+86)
                 offset = offset + 86
                 if act.targets[i].actions[n].has_add_efct == 1 then
-                    act.targets[i].actions[n].has_add_efct			= true
+                    act.targets[i].actions[n].has_add_efct		= true
                     act.targets[i].actions[n].add_efct_animation	= get_bit_packed(data,offset,offset+6)
                     act.targets[i].actions[n].add_efct_effect		= get_bit_packed(data,offset+6,offset+10)
                     act.targets[i].actions[n].add_efct_param		= get_bit_packed(data,offset+10,offset+27)
                     act.targets[i].actions[n].add_efct_message_id	= get_bit_packed(data,offset+27,offset+37)
                     offset = offset + 37
                 else
-                    act.targets[i].actions[n].has_add_efct			= false
+                    act.targets[i].actions[n].has_add_efct		= false
                     act.targets[i].actions[n].add_efct_animation	= 0
                     act.targets[i].actions[n].add_efct_effect		= 0
                     act.targets[i].actions[n].add_efct_param		= 0
@@ -244,11 +276,11 @@ function get_action_info(id, data)
         return act
     elseif id == 0x29 then		----------- ACTION MESSAGE ------------
 		local am = {}
-		am.actor_id		= get_bit_packed(data,0,32)
+		am.actor_id	= get_bit_packed(data,0,32)
 		am.target_id	= get_bit_packed(data,32,64)
-		am.param_1		= get_bit_packed(data,64,96)
-		am.param_2		= get_bit_packed(data,96,106)	-- First 6 bits
-		am.param_3		= get_bit_packed(data,106,128)	-- Rest
+		am.param_1	= get_bit_packed(data,64,96)
+		am.param_2	= get_bit_packed(data,96,106)	-- First 6 bits
+		am.param_3	= get_bit_packed(data,106,128)	-- Rest
 		am.actor_index	= get_bit_packed(data,128,144)
 		am.target_index	= get_bit_packed(data,144,160)
 		am.message_id	= get_bit_packed(data,160,175)	-- Cut off the most significant bit, hopefully

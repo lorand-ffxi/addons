@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.3.1'
+_addon.version = '2.3.2'
 
 require('luau')
 rarr = string.char(129,168)
@@ -139,13 +139,13 @@ function isPerformingAction(moving)
 	local status = acting and 'Performing an Action' or (moving and 'Moving' or 'Idle')
 	
 	if (lastActingState ~= acting) then	--If the current acting state is different from the last one
-		if lastActingState then				--If an action was being performed
-			actionDelay = 2.75					--Set a longer delay
-			lastAction = os.clock()				--The delay will be from this time
-		else								--If no action was being performed
-			actionDelay = 0.1					--Set a short delay
+		if lastActingState then			--If an action was being performed
+			actionDelay = 2.75			--Set a longer delay
+			lastAction = os.clock()			--The delay will be from this time
+		else					--If no action was being performed
+			actionDelay = 0.1			--Set a short delay
 		end
-		lastActingState = acting			--Refresh the last acting state
+		lastActingState = acting		--Refresh the last acting state
 	end
 	
 	actionInfo:text(myName..' is '..status)
