@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.3.3'
+_addon.version = '2.3.4'
 
 require('luau')
 rarr = string.char(129,168)
@@ -75,7 +75,8 @@ windower.register_event('prerender', function()
 			lastFollowCheck = now
 		end
 		
-		local busy = moving or acting
+		local disabled = buffActive('Sleep', 'Petrification', 'Charm', 'Terror', 'Lullaby', 'Stun')
+		local busy = moving or acting or disabled
 		if active and (not busy) and ((now - lastAction) > actionDelay) then
 			local action = cureSomeone() or checkDebuffs(player, debuffList) or checkBuffs(player, buffList)
 			if (action ~= nil) then

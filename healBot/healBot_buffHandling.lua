@@ -37,15 +37,17 @@ function checkOwnBuffs()
 		end
 	end
 	--Iterate through buffs that should be active to make sure they are
-	local myBuffs = buffList[player.name]
-	if (myBuffs ~= nil) then
-		local activeBuffs = get_active_buffs()
-		for buff,info in pairs(myBuffs) do
-			if not activeBuffs:contains(buff) then
-				registerBuff(player.name, buff, false)
-			end
-		end
-	end
+	--local myBuffs = buffList[player.name]
+	--if (myBuffs ~= nil) then
+	--	local activeBuffs = get_active_buffs()
+	--	for buff,info in pairs(myBuffs) do
+	--		if activeBuffs:contains(buff) then
+				--registerBuff(player.name, buff, true)
+	--		else
+	--			registerBuff(player.name, buff, false)
+	--		end
+	--	end
+	--end
 end
 
 function checkOwnBuff(buffName)
