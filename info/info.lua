@@ -1,8 +1,8 @@
 _addon.name = 'info'
 _addon.author = 'Lorand'
 _addon.command = 'info'
-_addon.version = '1.3'
-_addon.lastUpdate = '2015.02.01'
+_addon.version = '1.4'
+_addon.lastUpdate = '2015.02.13'
 
 --[[
 	Info is a Windower addon for FFXI that is designed to allow users to view
@@ -12,6 +12,8 @@ _addon.lastUpdate = '2015.02.01'
 require('luau')
 res = require('resources')
 packets = require('packets')
+
+require 'info_share'
 
 local showKB = false
 local showAnActionPacket = false
@@ -28,28 +30,8 @@ windower.register_event('addon command', function (command,...)
 		showKB = not showKB
 	elseif command:lower() == 'actionpacket' then
 		showAnActionPacket = true
-	elseif command:lower() == 'search' then
-		local target = args[1]
-		local field = args[2]
-		local val = args[3]
-		if (target ~= nil) and (field ~= nil) and (val ~= nil) then
-			local parsed = parseInput(target)
-			local results = parsed:with(field, val)
-			if (results ~= nil) then
-				printInfo(parsed:with(field, val), target..':with('..field..','..val..')')
-			else
-				windower.add_to_chat(2, target..':with('..field..','..val..'): No results.')
-			end
-		else
-			windower.add_to_chat(0, 'Error: Invalid arguments passed for search')
-		end
 	else
-		local cmd = parseInput(command)
-		if cmd ~= nil then
-			printInfo(cmd, command)
-		else
-			windower.add_to_chat(0, 'Error: Unable to parse valid command')
-		end
+		info.process_input(command, args)
 	end
 end)
 
@@ -57,7 +39,7 @@ windower.register_event('incoming chunk', function(id,data)
 	if showAnActionPacket then
 		if id == 0x28 then
 			local parsed = packets.parse('incoming', data)
-			printInfo(parsed, 'Action Packet (0x028)')
+			print_table(parsed, 'Action Packet (0x028)')
 			if parsed['Target 1 Action 1 Message'] == 230 then
 				showAnActionPacket = false
 			end
@@ -67,72 +49,16 @@ end)
 
 windower.register_event('keyboard', function (dik, flags, blocked)
 	if showKB then
-		windower.add_to_chat(0, '[Keyboard] dik: '..tostring(dik)..', flags: '..tostring(flags)..', blocked: '..tostring(blocked))
+		atc('[Keyboard] dik: '..tostring(dik)..', flags: '..tostring(flags)..', blocked: '..tostring(blocked))
 	end
 end)
 
-function parseInput(command)
-	if (command:startswith('type')) then
-		local contents = command:sub(6, #command-1)
-		local parsed = parseInput(contents)
-		local asNum = tonumber(contents)
-		if (#contents == 0) then
-			contents = nil
-		end
-		local toType = parsed and parsed or (asNum and asNum or contents)
-		return type(toType)
+function atc(c, msg)
+	if (type(c) == 'string') and (msg == nil) then
+		msg = c
+		c = 0
 	end
-	
-	local parts = string.split(command, '.')
-	local result = _G[parts[1]] or _G[parts[1]:lower()]
-	
-	for i = 2, #parts, 1 do
-		if result == nil then return nil end
-		local str = parts[i]
-		if string.endswith(str, '()') then
-			local func = str:sub(1, #str-2)
-			result = result[func]()
-		elseif string.endswith(str, ')') then
-			local params = string.match(str, '%([^)]+%)')
-			params = params:sub(2, #params-1)
-			local func = str:sub(1, string.find(str, '%(')-1)
-			result = result[func](params)
-		elseif string.endswith(str, ']') then
-			local key = string.match(str, '%[.+%]')
-			key = key:sub(2, #key-1)
-			local tab = str:sub(1, string.find(str, '%[')-1)
-			result = result[tab][key]
-		else
-			local strnum = tonumber(str)
-			if (strnum ~= nil) and (result[strnum] ~= nil) then
-				result = result[strnum]
-			else
-				result = result[str]
-			end
-		end
-	end
-	
-	return result
-end
-
---[[
-	Print all key, value pairs in the given table t to the FFXI chat log,
-	with an optional header line h
---]]
-function printInfo(t, h)
-	if t ~= nil then
-		if h ~= nil then
-			windower.add_to_chat(2, h)
-		end
-		
-		if type(t) == 'table' then
-			for k,v in pairs(t) do
-				windower.add_to_chat(0, tostring(k)..'  :  '..tostring(v))
-			end
-		else
-			windower.add_to_chat(0, tostring(t))
-		end
-	end
+	windower.add_to_chat(c, msg)
 end
 
 -----------------------------------------------------------------------------------------------------------

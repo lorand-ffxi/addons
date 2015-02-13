@@ -13,6 +13,9 @@
             <2>Refresh II</2>
             <3>Phalanx II</3>
         </mage2>
+        <mage3>
+            <1>Refresh II</1>
+        </mage3>
         <melee>
             <1>Haste II</1>
             <2>Phalanx II</2>
@@ -23,6 +26,9 @@
             <1>Haste II</1>
             <2>Phalanx II</2>
         </melee2>
+        <melee3>
+            <1>Haste II</1>
+        </melee3>
         <self>
             <1>Haste II</1>
             <2>Refresh II</2>
