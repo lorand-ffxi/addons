@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.3.4'
+_addon.version = '2.3.5'
 
 require('luau')
 rarr = string.char(129,168)
@@ -19,6 +19,11 @@ require 'healBot_followHandling'
 require 'healBot_packetHandling'
 
 aliases = config.load('..\\shortcuts\\data\\aliases.xml')
+mabil_debuffs = config.load('data/mabil_debuffs.xml')
+defaultBuffs = config.load('data/buffLists.xml')
+
+local zone_enter = os.clock()-25
+local zone_wait = false
 
 local trusts = populateTrustList()
 local ignoreList = S{}
@@ -50,10 +55,15 @@ windower.register_event('load', function()
 	lastActingState = false
 	partyMemberInfo = {}
 	ignoreTrusts = true
+	mobAbils = process_mabil_debuffs()
 end)
 
 windower.register_event('logout', function()
 	windower.send_command('lua unload healBot')
+end)
+
+windower.register_event('zone change', function(new_id, old_id)
+	zone_enter = os.clock()
 end)
 
 windower.register_event('incoming chunk', handle_incoming_chunk)
@@ -75,8 +85,7 @@ windower.register_event('prerender', function()
 			lastFollowCheck = now
 		end
 		
-		local disabled = buffActive('Sleep', 'Petrification', 'Charm', 'Terror', 'Lullaby', 'Stun')
-		local busy = moving or acting or disabled
+		local busy = moving or acting
 		if active and (not busy) and ((now - lastAction) > actionDelay) then
 			local action = cureSomeone() or checkDebuffs(player, debuffList) or checkBuffs(player, buffList)
 			if (action ~= nil) then
@@ -138,7 +147,8 @@ function isPerformingAction(moving)
 	end
 	
 	local acting = (actionEnd < actionStart)
-	local status = acting and 'Performing an Action' or (moving and 'Moving' or 'Idle')
+	local status = acting and 'performing an action' or (moving and 'moving' or 'idle')
+	status = ' is '..status
 	
 	if (lastActingState ~= acting) then	--If the current acting state is different from the last one
 		if lastActingState then			--If an action was being performed
@@ -150,7 +160,20 @@ function isPerformingAction(moving)
 		lastActingState = acting		--Refresh the last acting state
 	end
 	
-	actionInfo:text(myName..' is '..status)
+	if (os.clock() - zone_enter) < 25 then
+		acting = true
+		status = ' zoned recently'
+		zone_wait = true
+	elseif zone_wait then
+		zone_wait = false
+		resetBuffTimers(nil, S{'Protect V','Shell V'})
+		checkOwnBuffs()
+	elseif buffActive('Sleep', 'Petrification', 'Charm', 'Terror', 'Lullaby', 'Stun') then
+		acting = true
+		status = 'is disabled'
+	end
+	
+	actionInfo:text(myName..status)
 	actionInfo:visible(showActionInfo)
 	return acting
 end

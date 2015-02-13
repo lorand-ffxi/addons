@@ -186,12 +186,17 @@ function registerEffect(ai, tact, aname, tname, monitoring)
 		elseif tact.message_id == 185 then
 			local mabil = res.monster_abilities[ai.param]
 			if (mabil ~= nil) then
-				if mabil.en == 'Bad Breath' then
-					registerDebuff(tname, 'silence', true)
-					registerDebuff(tname, 'blindness', true)
-					registerDebuff(tname, 'paralysis', true)
-					registerDebuff(tname, 'poison', true)
+				if mobAbils:contains(mabil.en) then
+					for dbf,_ in pairs(mobAbils[mabil.en]) do
+						registerDebuff(tname, dbf, true)
+					end
 				end
+				-- if mabil.en == 'Bad Breath' then
+					-- registerDebuff(tname, 'silence', true)
+					-- registerDebuff(tname, 'blindness', true)
+					-- registerDebuff(tname, 'paralysis', true)
+					-- registerDebuff(tname, 'poison', true)
+				-- end
 			end
 		end--/message ID checks
 	end--/monitoring target of action

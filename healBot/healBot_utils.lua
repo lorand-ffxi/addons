@@ -271,6 +271,32 @@ function populateTrustList()
 	return trusts
 end
 
+function process_mabil_debuffs()
+	local mabils = S{}
+	for abil_raw,debuffs in pairs(mabil_debuffs) do
+		local aname = mabilName(abil_raw)
+		mabils[aname] = S{}
+		for _,debuff in pairs(debuffs) do
+			mabils[aname]:add(debuff)
+		end
+	end
+	return mabils
+end
+
+function mabilName(rawName)
+	local parts = rawName:split('_')
+	local rebuilt = ''
+	for _,part in pairs(parts) do
+		if rawName:contains(part) then
+			if rebuilt:length() > 1 then
+				rebuilt = rebuilt..' '
+			end
+			rebuilt = rebuilt..formatName(part)
+		end
+	end
+	return rebuilt
+end
+
 -----------------------------------------------------------------------------------------------------------
 --[[
 Copyright © 2015, Lorand

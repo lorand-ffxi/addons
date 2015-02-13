@@ -26,14 +26,6 @@ buff_map = {['Barfira']='Barfire',['Barblizzara']='Barblizzard',['Baraera']='Bar
 debuff_map = {['Accuracy Down']='Erase',['addle']='Erase',['AGI Down']='Erase',['Attack Down']='Erase',['bind']='Erase',['Bio']='Erase',['blindness']='Blindna',['Burn']='Erase',['Choke']='Erase',['CHR Down']='Erase',['curse']='Cursna',['Defense Down']='Erase',['DEX Down']='Erase',['Dia']='Erase',['disease']='Viruna',['doom']='Cursna',['Drown']='Erase',['Elegy']='Erase',['Evasion Down']='Erase',['Frost']='Erase',['Inhibit TP']='Erase',['INT Down']='Erase',['Lullaby']='Cure',['Magic Acc. Down']='Erase',['Magic Atk. Down']='Erase',['Magic Def. Down']='Erase',['Magic Evasion Down']='Erase',['Max HP Down']='Erase',['Max MP Down']='Erase',['Max TP Down']='Erase',['MND Down']='Erase',['Nocturne']='Erase',['paralysis']='Paralyna',['petrification']='Stona',['plague']='Viruna',['poison']='Poisona',['Rasp']='Erase',['Requiem']='Erase',['Shock']='Erase',['silence']='Silena',['slow']='Erase',['STR Down']='Erase',['VIT Down']='Erase',['weight']='Erase'}
 removal_map = {['Blindna']={'blindness'},['Cursna']={'curse','doom'},['Paralyna']={'paralysis'},['Poisona']={'poison'},['Silena']={'silence'},['Stona']={'petrification'},['Viruna']={'disease','plague'},['Erase']={'weight','Accuracy Down','addle','AGI Down','Attack Down','bind','Bio','Burn','Choke','CHR Down','Defense Down','DEX Down','Dia','Drown','Elegy','Evasion Down','Frost','Inhibit TP','INT Down','Magic Acc. Down','Magic Atk. Down','Magic Def. Down','Magic Evasion Down','Max HP Down','Max MP Down','Max TP Down','MND Down','Nocturne','Rasp','Requiem','Shock','slow','STR Down','VIT Down'}}
 
-defaultBuffs = {
-	['self'] = {'Haste II', 'Refresh II', 'Aquaveil', 'Protect V', 'Shell V', 'Phalanx', 'Reraise'},
-	['melee'] = {'Haste II', 'Phalanx II', 'Protect V', 'Shell V'},
-	['mage'] = {'Haste II', 'Refresh II', 'Protect V', 'Shell V', 'Phalanx II'},
-	['melee2'] = {'Haste II', 'Phalanx II'},
-	['mage2'] = {'Haste II', 'Refresh II', 'Phalanx II'}
-}
-
 ignoreDebuffs = {
 	['Accuracy Down'] = S{'WHM','BLM','RDM','BRD','SMN','SCH','GEO'},
 	['AGI Down'] = S{'WHM','BLM','RDM','BRD','SMN','SCH','GEO'},

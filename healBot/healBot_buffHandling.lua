@@ -235,11 +235,23 @@ function resetDebuffTimers(player)
 	debuffList[player] = {}
 end
 
-function resetBuffTimers(player)
-	if buffList[player] == nil then return end
-	for buffName,_ in pairs(buffList[player]) do
-		buffList[player][buffName]['landed'] = nil
+function resetBuffTimers(player, exclude)
+	if buffList[player] == nil then
+		for p,l in pairs(buffList) do
+			resetBuffTimers(p)
+		end
+		return
 	end
+	for buffName,_ in pairs(buffList[player]) do
+		if exclude ~= nil then
+			if not (exclude:contains(buffName)) then
+				buffList[player][buffName]['landed'] = nil
+			end
+		else
+			buffList[player][buffName]['landed'] = nil
+		end
+	end
+	atc('Notice: Buff timers for '..player..' were reset.')
 end
 
 -----------------------------------------------------------------------------------------------------------

@@ -1,0 +1,34 @@
+<?xml version="1.1" ?>
+<settings>
+    <global>
+        <profile>
+            <celaeno>
+                <stun>
+                    <1>Typhoean Rage</1>
+                    <2>Shrieking Gale</2>
+                    <3>Wings of Woe</3>
+                    <4>Wings of Agony</4>
+                </stun>
+            </celaeno>
+            <shark>
+                <stun>
+                    <1>Protolithic Puncture</1>
+                    <2>Pelagic Cleaver</2>
+                    <3>Tidal Guillotine</3>
+                    <4>Carcharian Verve</4>
+                    <5>Marine Mayhem</5>
+                    <6>Aquatic Lance</6>
+                </stun>
+            </shark>
+            <test>
+                <stun>
+                    <1>Scream</1>
+                    <2>Dream Flower</2>
+                    <3>Sanguinary Slash</3>
+                    <4>Paralyzing Triad</4>
+                    <5>Necrotic Brume</5>
+                </stun>
+            </test>
+        </profile>
+    </global>
+</settings>
