@@ -28,10 +28,18 @@ function info.process_input(command, args)
 				atc(0, v.id..','..v.en..','..v.element..','..v.skill)
 			end
 		end
+	elseif command:lower() == 'colortest' then
+		for c = 0, 256 do
+			atc(c, 'color test: '..c)
+		end
 	else
-		local cmd = info.parse_for_info(command)
-		if cmd ~= nil then
-			info.print_table(cmd, command)
+		local parsed = info.parse_for_info(command)
+		if parsed ~= nil then
+			local msg = ':'
+			if (type(parsed) == 'table') then
+				msg = ' ('..sizeof(parsed)..'):'
+			end
+			info.print_table(parsed, command..msg)
 		else
 			atc(3,'Error: Unable to parse valid command')
 		end
@@ -86,6 +94,12 @@ function info.parse_for_info(command)
 	return result
 end
 
+function sizeof(tbl)
+	local c = 0
+	for _,_ in pairs(tbl) do c = c + 1 end
+	return c
+end
+
 --[[
 	Print all key, value pairs in the given table to the FFXI chat log,
 	with an optional header line
@@ -96,8 +110,13 @@ function info.print_table(tbl, header)
 			atc(2, header)
 		end
 		if type(tbl) == 'table' then
+			local c = 0
 			for k,v in pairs(tbl) do
 				atc(0, tostring(k)..'  :  '..tostring(v))
+				c = c + 1
+				if ((c % 50) == 0) then
+					atc(160,'---------- ('..c..') ----------')
+				end
 			end
 		else
 			atc(0, tostring(tbl))
