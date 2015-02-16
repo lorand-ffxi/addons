@@ -49,9 +49,10 @@ windower.register_event('addon command', function (command,...)
 		windower.send_command('lua reload '.._addon.name)
 	elseif command == 'unload' then
 		windower.send_command('lua unload '.._addon.name)
-	elseif command == 'load' then
+	elseif S{'load','profile'}:contains(command) then
 		if (args[1] ~= nil) then
 			if (settings.profile[args[1]] ~= nil) then
+				enabled = true
 				loadProfile(args[1])
 			else 
 				atc('ERROR: Profile "'..args[1]..'" does not exist.')
@@ -86,7 +87,6 @@ function loadProfile(pname)
 			end
 		end
 	end
-	atc('Loaded profile: '..pname)
 	print_status()
 end
 
@@ -150,6 +150,7 @@ function processAction(m_id, a_id)
 			end
 			if (#stunCmd > 1) then
 				windower.send_command('input '..stunCmd)
+				atc(123, '===============> STUNNING '..abilname..' <===============')
 			end
 			return true
 		else
@@ -315,8 +316,12 @@ function printTable(tbl, header)
 	end
 end
 
-function atc(text)
-	windower.add_to_chat(0, '['.._addon.name..'] '..text)
+function atc(c, msg)
+	if (type(c) == 'string') and (msg == nil) then
+		msg = c
+		c = 0
+	end
+	windower.add_to_chat(c, msg)
 end
 
 function atcd(text)

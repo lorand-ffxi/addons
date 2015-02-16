@@ -1,3 +1,10 @@
+--==============================================================================
+--[[
+	Author: Ragnarok.Lorand
+	HealBot packet handling functions
+--]]
+--==============================================================================
+
 --[[
 	Analyze the data contained in incoming packets for useful info.
 	@param id packet ID
@@ -80,6 +87,7 @@ function processMessage(ai, actor, monitoring)
 				atc('[0x29]Message('..ai.message_id..'): '..aname..' { '..params..' } '..rarr..' '..tname..' | '..msg.en)
 			end
 			
+			--Track whether or not the local player is performing an action
 			if windower.ffxi.get_player().name == aname then
 				if messages_initiating:contains(ai.message_id) then
 					actionStart = os.clock()
@@ -117,6 +125,7 @@ function registerEffect(ai, tact, aname, tname, monitoring)
 				registerDebuff(tname, 'Dia', true)
 			end
 		elseif messages_gainEffect:contains(tact.message_id) then	--ai.param: spell; tact.param: buff/debuff
+			--{tname} gains the effect of {buff} / {tname} is {debuff}ed
 			local buff = res.buffs[tact.param]
 			if enfeebling:contains(tact.param) then
 				registerDebuff(tname, buff.en, true)
@@ -124,6 +133,7 @@ function registerEffect(ai, tact, aname, tname, monitoring)
 				registerBuff(tname, buff.en, true)
 			end
 		elseif messages_loseEffect:contains(tact.message_id) then	--ai.param: spell; tact.param: buff/debuff
+			--{tname}'s {buff} wore off
 			local buff = res.buffs[tact.param]
 			if enfeebling:contains(tact.param) then
 				registerDebuff(tname, buff.en, false)
@@ -131,9 +141,11 @@ function registerEffect(ai, tact, aname, tname, monitoring)
 				registerBuff(tname, buff.en, false)
 			end
 		elseif messages_noEffect:contains(tact.message_id) then		--ai.param: spell; tact.param: buff/debuff
+			--Spell had no effect on {tname}
 			local spell = res.spells[ai.param]
 			if (spell ~= nil) then
 				if spells_statusRemoval:contains(spell.id) then
+					--The debuff must have worn off or have been removed already
 					local debuffs = removal_map[spell.en]
 					if (debuffs ~= nil) then
 						for _,debuff in pairs(debuffs) do
@@ -141,8 +153,12 @@ function registerEffect(ai, tact, aname, tname, monitoring)
 						end
 					end
 				elseif spells_buffs:contains(spell.id) then
+					--The buff must already be active, or there must be some debuff preventing the buff from landing
 					local bname = getBuffForSpell(spell.en)
 					registerBuff(tname, bname, false)
+					if (bname == 'Haste') then
+						registerDebuff(tname, 'slow', true)
+					end
 				end
 			end
 		elseif messages_nonGeneric:contains(tact.message_id) then
@@ -183,7 +199,7 @@ function registerEffect(ai, tact, aname, tname, monitoring)
 			elseif S{591}:contains(tact.message_id) then	--${actor} uses ${ability}.${lb}${target} is afflicted with Bewildered Daze (lv.${number}).
 				--registerDebuff(tname, 'Bewildered Daze', true)
 			end
-		elseif tact.message_id == 185 then
+		elseif S{185}:contains(tact.message_id) then	--${actor} uses ${weapon_skill}.${lb}${target} takes ${number} points of damage.
 			local mabil = res.monster_abilities[ai.param]
 			if (mabil ~= nil) then
 				if (mobAbils[mabil.en] ~= nil) then

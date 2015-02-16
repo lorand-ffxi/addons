@@ -1,3 +1,12 @@
+--==============================================================================
+--[[
+	Author: Ragnarok.Lorand
+	HealBot utility functions that don't belong anywhere else
+--]]
+--==============================================================================
+--			Input Handling Functions
+--==============================================================================
+
 function processCommand(command,...)
 	command = command and command:lower() or 'help'
 	local args = {...}
@@ -6,6 +15,8 @@ function processCommand(command,...)
 		windower.send_command('lua reload healBot')
 	elseif command == 'unload' then
 		windower.send_command('lua unload healBot')
+	elseif command == 'refresh' then
+		load_configs()
 	elseif S{'start','on'}:contains(command) then
 		activate()
 	elseif S{'stop','end','off'}:contains(command) then
@@ -63,7 +74,7 @@ function processCommand(command,...)
 		else
 			atc('Error: Invalid argument specified for BuffList: '..args[1])
 		end
-	elseif command == 'follow' then
+	elseif S{'follow','f'}:contains(command) then
 		if not validate(args, 1, 'Error: No argument specified for follow') then return end
 		if S{'off', 'end', 'false'}:contains(args[1]:lower()) then
 			follow = false
@@ -122,7 +133,16 @@ function processCommand(command,...)
 	elseif command == 'status' then
 		printStatus()
 	elseif command == 'info' then
-		printInfo()
+		if info == nil then
+			atc(3,'Unable to parse info.  Windower/addons/info/info_shared.lua was unable to be loaded.')
+			atc(3,'If you would like to use this function, please visit https://github.com/lorand-ffxi/addons to download it.')
+			return
+		end
+		local cmd = args[1]		--Take the first element as the command
+		if (#args > 1) then		--If there were more args provided
+			table.remove(args, 1)	--Remove the first from the list of args
+		end
+		info.process_input(cmd, args)
 	else
 		atc('Error: Unknown command')
 	end
@@ -181,6 +201,10 @@ function validate(args, numArgs, message)
 	return true
 end
 
+--==============================================================================
+--			String Formatting Functions
+--==============================================================================
+
 function formatSpellName(text)
 	if (type(text) ~= 'string') or (#text < 1) then return nil end
 	
@@ -232,12 +256,29 @@ function toRomanNumeral(val)
 	return dec2roman[val]
 end
 
-function atc(text)
-	windower.add_to_chat(0, '[healBot]'..text)
+--==============================================================================
+--			Output Handling Functions
+--==============================================================================
+
+function atc(c, msg)
+	if (type(c) == 'string') and (msg == nil) then
+		msg = c
+		c = 0
+	end
+	windower.add_to_chat(c, '[healBot]'..msg)
 end
 
-function atcd(text)
-	if debugMode then atc(text) end
+function atcd(c, msg)
+	if debugMode then atc(c, msg) end
+end
+
+--[[
+	Convenience wrapper for echoing a message in the Windower console.
+--]]
+function echo(msg)
+	if (msg ~= nil) then
+		windower.send_command('echo [healBot]'..msg)
+	end
 end
 
 function print_table_keys(t, prefix)
@@ -259,6 +300,21 @@ function printPairs(tbl, prefix)
 			printPairs(v, prefix..'    ')
 		end
 	end
+end
+
+--==============================================================================
+--			Initialization Functions
+--==============================================================================
+
+function load_configs()
+	aliases = config.load('..\\shortcuts\\data\\aliases.xml')
+	mabil_debuffs = config.load('data/mabil_debuffs.xml')
+	defaultBuffs = config.load('data/buffLists.xml')
+	priorities = config.load('data/priorities.xml')
+	mobAbils = process_mabil_debuffs()
+	local msg = configs_loaded and 'Rel' or 'L'
+	configs_loaded = true
+	atc(15, msg..'oaded config files.')
 end
 
 function populateTrustList()
@@ -295,6 +351,16 @@ function mabilName(rawName)
 		end
 	end
 	return rebuilt
+end
+
+--==============================================================================
+--			Table Functions
+--==============================================================================
+
+function sizeof(tbl)
+	local c = 0
+	for _,_ in pairs(tbl) do c = c + 1 end
+	return c
 end
 
 -----------------------------------------------------------------------------------------------------------

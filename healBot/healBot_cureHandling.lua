@@ -1,6 +1,26 @@
+--==============================================================================
 --[[
-	This file contains healBot functions related to casting Cure.
+	Author: Ragnarok.Lorand
+	HealBot cure handling functions
 --]]
+--==============================================================================
+
+function getPotentialCures()
+	local potentialActions = {}
+	local c = 1
+	local hpTable = getMissingHps()				--Get a table with players' HP info
+	
+	for name,p in pairs(hpTable) do
+		if (p.hpp < 95) then
+			local spell = get_cure_to_cast(p.missing)
+			if (spell ~= nil) then
+				potentialActions[c] = {action=spell,targ_hpp=p.hpp,targetName=name,msg=' ('..p.missing..')'}
+				c = c + 1
+			end
+		end
+	end
+	return (sizeof(potentialActions) > 0) and potentialActions or nil
+end
 
 --[[
 	Determines whether or not a Cure spell needs to be cast, and returns a table
@@ -21,11 +41,12 @@ function cureSomeone()
 			local action = {}					--Build the action table
 			action.msg = ' ('..curee.missing..')'			--Set the debug message
 			action.targetName = curee.name				--The target is the curee
+			action.targ_hpp = curee.hpp				--The cure target's HP%
 			action.action = spell					--The action is the Cure spell
 			return action						--Return the action table to be executed
 		end
 	end
-	return nil								--Return nil if there's nothing to do
+	return nil						--Return nil if there's nothing to do
 end
 
 --[[
@@ -104,6 +125,7 @@ function getMemberWithMostHpMissing(party)
 		if (p.missing > curee.missing) and (p.hpp < 95) then	--If pc is missing more HP than the stored one
 			curee.name = name					--Store their name
 			curee.missing = p.missing				--And store the amount of HP they're missing
+			curee.hpp = p.hpp
 		end
 	end
 	if curee.missing > 0 then				--If someone is missing some HP

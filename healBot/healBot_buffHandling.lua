@@ -1,5 +1,16 @@
+--==============================================================================
+--[[
+	Author: Ragnarok.Lorand
+	HealBot buff handling functions
+--]]
+--==============================================================================
+
 buffList = {}
 debuffList = {}
+
+--==============================================================================
+--			Local Player Buff Checking
+--==============================================================================
 
 function get_active_buffs()
 	local activeBuffs = S{}
@@ -15,39 +26,40 @@ function get_active_buffs()
 end
 
 function buffActive(...)
-	local args = {...}
-	local activeBuffs = get_active_buffs()
-	for _,buff in pairs(args) do
-		if activeBuffs:contains(buff) then
-			return true
+	local args = S{...}:map(string.lower)
+	local player = windower.ffxi.get_player()
+	if (player ~= nil) and (player.buffs ~= nil) then
+		for _,bid in pairs(player.buffs) do
+			local buff = res.buffs[bid]
+			if args:contains(buff.en:lower()) then
+				return buff
+			end
 		end
 	end
-	return false
+	return nil
 end
 
 function checkOwnBuffs()
 	local player = windower.ffxi.get_player()
-	--Iterate through actually active buffs to register their presence
-	local activeBuffIds = player.buffs
-	for _,id in pairs(activeBuffIds) do
-		if (enfeebling:contains(id)) then
-			registerDebuff(player.name, res.buffs[id].en, true)
-		else
-			registerBuff(player.name, res.buffs[id].en, true)
+	if (player ~= nil) and (player.buffs ~= nil) then
+		--Register everything that's actually active
+		for _,bid in pairs(player.buffs) do
+			local buff = res.buffs[bid]
+			if (enfeebling:contains(bid)) then
+				registerDebuff(player.name, buff.en, true)
+			else
+				registerBuff(player.name, buff.en, true)
+			end
+		end
+		--Double check the list of what should be active
+		local checklist = buffList[player.name]
+		local active = S(player.buffs)
+		for bname,binfo in pairs(checklist) do
+			if not (active:contains(binfo.buff.id)) then
+				registerBuff(player.name, bname, false)
+			end
 		end
 	end
-	--Iterate through buffs that should be active to make sure they are
-	--local myBuffs = buffList[player.name]
-	--if (myBuffs ~= nil) then
-	--	local activeBuffs = get_active_buffs()
-	--	for buff,info in pairs(myBuffs) do
-	--		if activeBuffs:contains(buff) then
-				--registerBuff(player.name, buff, true)
-	--		else
-	--			registerBuff(player.name, buff, false)
-	--		end
-	--	end
-	--end
 end
 
 function checkOwnBuff(buffName)
@@ -59,27 +71,46 @@ function checkOwnBuff(buffName)
 	end
 end
 
-function checkBuffs(player, buffList)
+--==============================================================================
+--			Monitored Player Buff Checking
+--==============================================================================
+
+function checkBuffs()
+	local potentialActions = {}
+	local c = 1
 	local now = os.clock()
 	for targ, buffs in pairs(buffList) do
 		if not isTooFar(targ) then
 			for buff, info in pairs(buffs) do
-				local spell = info.spell
+				if (targ == myName) then checkOwnBuff(buff) end
+				local action = info.action
 				if (info.landed == nil) then
 					if (info.attempted == nil) or ((now - info.attempted) >= 3) then
-						if (windower.ffxi.get_spell_recasts()[spell.recast_id] == 0) and (player.vitals.mp >= spell.mp_cost) then
-							info.attempted = now
-							return {action = spell, targetName = targ}
+						if (getRecast(action) == 0) then
+							potentialActions[c] = {['action']=action, ['targetName']=targ, ['buffName']=buff}
+							c = c + 1
+							--info.attempted = now
+							--return {['action']=action, ['targetName']=targ}
 						end
 					end
 				end
 			end
 		end
 	end
-	return nil
+	return (sizeof(potentialActions) > 0) and potentialActions or nil
 end
 
-function checkDebuffs(player, debuffList)
+function getRecast(action)
+	if (action.type == 'JobAbility') then
+		return windower.ffxi.get_ability_recasts()[action.recast_id]
+	else
+		return windower.ffxi.get_spell_recasts()[action.recast_id]
+	end
+end
+
+function checkDebuffs()
+	local potentialActions = {}
+	local c = 1
 	local now = os.clock()
 	for targ, debuffs in pairs(debuffList) do
 		if not isTooFar(targ) then
@@ -88,9 +119,11 @@ function checkDebuffs(player, debuffList)
 				if removalSpellName ~= nil then
 					if (info.attempted == nil) or ((now - info.attempted) >= 3) then
 						local spell = res.spells:with('en', removalSpellName)
-						if (windower.ffxi.get_spell_recasts()[spell.recast_id] == 0) and (player.vitals.mp >= spell.mp_cost) then
-							info.attempted = now
-							return {action = spell, targetName = targ, msg = ' ('..debuff..')'}
+						if (getRecast(spell) == 0) then
+							potentialActions[c] = {['action']=spell, ['targetName']=targ, ['msg']=' ('..debuff..')', ['debuffName']=debuff}
+							c = c + 1
+							--info.attempted = now
+							--return {['action']=spell, ['targetName']=targ, ['msg']=' ('..debuff..')'}
 						end
 					end
 				else
@@ -99,8 +132,12 @@ function checkDebuffs(player, debuffList)
 			end
 		end
 	end
-	return nil
+	return (sizeof(potentialActions) > 0) and potentialActions or nil
 end
+
+--==============================================================================
+--			Input Handling Functions
+--==============================================================================
 
 function registerNewBuff(args, use)
 	local me = windower.ffxi.get_player()
@@ -128,14 +165,27 @@ function registerNewBuff(args, use)
 		end
 	end
 	
+	local action = {}
 	local spell = res.spells:with('en', spellName)
-	if spell == nil then
-		atc('Invalid spell name: '..spellName)
-		return
-	end
-	if not canCast(spell) then
-		atc('Unable to cast spell: '..spellName)
-		return
+	if (spell ~= nil) then
+		if not canCast(spell) then
+			atc('Unable to cast spell: '..spellName)
+			return
+		end
+		action = spell
+	else
+		if (target.id == me.id) then
+			local abil = res.job_abilities:with('en', spellName)
+			if (abil ~= nil) then
+				action = abil
+			else
+				atc('Invalid spell/ability name: '..spellName)
+				return
+			end
+		else
+			atc('Invalid spell name: '..spellName)
+			return
+		end
 	end
 	
 	local targetType = 'None'
@@ -150,34 +200,42 @@ function registerNewBuff(args, use)
 			targetType = 'Ally'
 		end
 	end
-	local validTargets = S(spell.targets)
+	local validTargets = S(action.targets)
 	if (not validTargets:contains(targetType)) then
-		atc(target.name..' is an invalid target for '..spell.en..' (Type: '..targetType..')')
+		atc(target.name..' is an invalid target for '..action.en..' (Type: '..targetType..')')
 		return
 	end
 	
 	local monitoring = getMonitoredPlayers()
-	if (not monitoring[target.name]) then
+	if (not (monitoring[target.name])) then
 		monitorCommand('watch', target.name)
 	end
 	
-	if buffList[target.name] == nil then
-		buffList[target.name] = {}
+	buffList[target.name] = buffList[target.name] or {}
+	local bname = getBuffNameForAction(action)
+	local buff = res.buffs:with('en',bname)
+	if (buff == nil) then
+		atc('Unable to match the buff name to an actual buff: '..bname)
+		return
 	end
-	local bname = getBuffForSpell(spell.en)
+	
 	if (use) then
-		buffList[target.name][bname] = {['spell']=spell, ['maintain']=true}
-		atc('Will maintain buff: '..spell.en..' '..rarr..' '..target.name)
+		buffList[target.name][bname] = {['action']=action, ['maintain']=true, ['buff']=buff}
+		atc('Will maintain buff: '..action.en..' '..rarr..' '..target.name)
 		if (targetType == 'Self') then
 			checkOwnBuff(bname)
 		end
 	else
 		buffList[target.name][bname] = nil
-		atc('Will no longer maintain buff: '..spell.en..' '..rarr..' '..target.name)
+		atc('Will no longer maintain buff: '..action.en..' '..rarr..' '..target.name)
 	end
 end
 
-function getBuffForSpell(spellName)
+function getBuffNameForAction(action)
+	if (action.type == 'JobAbility') then
+		return action.en
+	end
+	local spellName = action.en
 	if (buff_map[spellName] ~= nil) then
 		return buff_map[spellName]
 	else
@@ -189,6 +247,10 @@ function getBuffForSpell(spellName)
 		return buffName
 	end
 end
+
+--==============================================================================
+--			Buff Tracking Functions
+--==============================================================================
 
 function registerDebuff(targetName, debuffName, gain)
 	if debuffList[targetName] == nil then
@@ -251,7 +313,7 @@ function resetBuffTimers(player, exclude)
 			buffList[player][buffName]['landed'] = nil
 		end
 	end
-	atc('Notice: Buff timers for '..player..' were reset.')
+	atcd('Notice: Buff timers for '..player..' were reset.')
 end
 
 -----------------------------------------------------------------------------------------------------------

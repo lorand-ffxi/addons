@@ -1,7 +1,8 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.3.5'
+_addon.version = '2.4.0'
+_addon.lastUpdate = '2015.02.15'
 
 require('luau')
 rarr = string.char(129,168)
@@ -10,6 +11,7 @@ res = require('resources')
 config = require('config')
 texts = require('texts')
 packets = require('packets')
+--info = loadfile('../info/info_share')	--Load addons\info\info_share.lua for functions to print information accessed directly from windower
 
 require 'healBot_statics'
 require 'healBot_utils'
@@ -17,17 +19,17 @@ require 'healBot_buffHandling'
 require 'healBot_cureHandling'
 require 'healBot_followHandling'
 require 'healBot_packetHandling'
+require 'healBot_actionHandling'
 
-aliases = config.load('..\\shortcuts\\data\\aliases.xml')
-mabil_debuffs = config.load('data/mabil_debuffs.xml')
-defaultBuffs = config.load('data/buffLists.xml')
+configs_loaded = false
+load_configs()
 
-local zone_enter = os.clock()-25
-local zone_wait = false
+zone_enter = os.clock()-25
+zone_wait = false
 
-local trusts = populateTrustList()
-local ignoreList = S{}
-local extraWatchList = S{}
+trusts = populateTrustList()
+ignoreList = S{}
+extraWatchList = S{}
 
 local moveInfo = texts.new({pos={x=0,y=18}})
 local actionInfo = texts.new({pos={x=0,y=0}})
@@ -39,11 +41,7 @@ windower.register_event('load', function()
 	actionEnd = actionStart + 0.1
 	
 	local player = windower.ffxi.get_player()
-	if player ~= nil then
-		myName = player.name
-	else
-		myName = 'Player'
-	end
+	myName = player and player.name or 'Player'
 	
 	showPacketInfo = false
 	showMoveInfo = false
@@ -55,7 +53,6 @@ windower.register_event('load', function()
 	lastActingState = false
 	partyMemberInfo = {}
 	ignoreTrusts = true
-	mobAbils = process_mabil_debuffs()
 end)
 
 windower.register_event('logout', function()
@@ -87,13 +84,14 @@ windower.register_event('prerender', function()
 		
 		local busy = moving or acting
 		if active and (not busy) and ((now - lastAction) > actionDelay) then
-			local action = cureSomeone() or checkDebuffs(player, debuffList) or checkBuffs(player, buffList)
+			--local action = cureSomeone() or checkDebuffs(player, debuffList)[1] or checkBuffs(player, buffList)[1]
+			local action = getActionToPerform()
 			if (action ~= nil) then
-				local spell = action.action
+				local act = action.action
 				local tname = action.targetName
 				local msg = action.msg or ''
-				atcd(spell.en..sparr..tname..msg)
-				wcmd(spell.prefix, spell.en, tname)
+				atcd(act.en..sparr..tname..msg)
+				wcmd(act.prefix, act.en, tname)
 			end
 			lastAction = now
 		end
@@ -184,6 +182,32 @@ function isTooFar(name)
 		return math.sqrt(target.distance) > 20.8
 	end
 	return true
+end
+
+function getPlayerPriority(tname)
+	if (tname == myName) then
+		return 1
+	end
+	local pmInfo = partyMemberInfo[tname]
+	local jobprio = 3
+	if (pmInfo ~= nil) and (pmInfo.job ~= nil) then
+		jobprio = priorities.jobs[pmInfo.job:lower()]
+	end
+	local playerprio = 3
+	if (priorities.players ~= nil) then
+		playerprio = priorities.players[tname:lower()]
+	end
+	return math.min(jobprio, playerprio)
+end
+
+function getBuffPriority(buff_name)
+	local bn = buff_name or ''
+	return buff_priorities[bn:lower()] or 3
+end
+
+function getRemovalPriority(ailment)
+	local an = ailment or ''
+	return removal_priorities[an:lower()] or 3
 end
 
 function canCast(spell)

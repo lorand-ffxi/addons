@@ -1,3 +1,10 @@
+--==============================================================================
+--[[
+	Author: Ragnarok.Lorand
+	HealBot follow handling functions
+--]]
+--==============================================================================
+
 followTarget = nil
 follow = false
 followDist = 3

@@ -20,6 +20,16 @@
                     <6>Aquatic Lance</6>
                 </stun>
             </shark>
+            <sharkpre>
+                <stun>
+                    <1>Venom Shell</1>
+                    <2>Painful Whip</2>
+                    <3>Vile Belch</3>
+                    <4>Abominable Belch</4>
+                    <5>Deathgnash</5>
+                    <6>Venom Shower</6>
+                </stun>
+            </sharkpre>
             <test>
                 <stun>
                     <1>Scream</1>

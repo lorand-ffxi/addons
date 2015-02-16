@@ -7,6 +7,12 @@
             <3>paralysis</3>
             <4>poison</4>
         </bad_breath>
+        <black_cloud>
+            <1>blindness</1>
+        </black_cloud>
+        <poison_breath>
+            <1>poison</1>
+        </poison_breath>
         <wings_of_agony>
             <1>sleep</1>
         </wings_of_agony>

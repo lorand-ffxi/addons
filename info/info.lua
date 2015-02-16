@@ -1,8 +1,8 @@
 _addon.name = 'info'
 _addon.author = 'Lorand'
 _addon.command = 'info'
-_addon.version = '1.4'
-_addon.lastUpdate = '2015.02.13'
+_addon.version = '1.4.1'
+_addon.lastUpdate = '2015.02.15'
 
 --[[
 	Info is a Windower addon for FFXI that is designed to allow users to view
@@ -12,6 +12,7 @@ _addon.lastUpdate = '2015.02.13'
 require('luau')
 res = require('resources')
 packets = require('packets')
+slips = require('slips')
 
 require 'info_share'
 
