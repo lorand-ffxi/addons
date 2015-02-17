@@ -1,7 +1,7 @@
 _addon.name = 'jponry'
 _addon.author = 'Lorand'
 _addon.command = 'jponry'
-_addon.version = '1.2'
+_addon.version = '1.3'
 
 chars = require('chat.chars')
 
@@ -29,9 +29,11 @@ windower.register_event('addon command', function (command,...)
     local args = {...}
 	
 	if command:lower() == 'reload' then
-		windower.send_command('lua unload '.._addon.name..'; lua load '.._addon.name)
+		windower.send_command('lua reload '.._addon.name)
 	elseif command:lower() == 'unload' then
 		windower.send_command('lua unload '.._addon.name)
+	elseif command:lower() == 'jponry' then
+		convert({'JP','ONRY','JP','ONRY','JP','ONRY','JP','ONRY','JP','ONRY','JP','ONRY','JP','ONRY','JP','ONRY','JP','ONRY','JP','ONRY'},'j',args[1])
 	elseif command:lower() == 'chars' then
 		for k,v in pairs(chars) do
 			windower.add_to_chat(1, v..' : '..k)
