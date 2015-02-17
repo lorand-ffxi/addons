@@ -1,8 +1,8 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.4.0'
-_addon.lastUpdate = '2015.02.15'
+_addon.version = '2.4.1'
+_addon.lastUpdate = '2015.02.16'
 
 require('luau')
 rarr = string.char(129,168)
@@ -11,7 +11,8 @@ res = require('resources')
 config = require('config')
 texts = require('texts')
 packets = require('packets')
---info = loadfile('../info/info_share')	--Load addons\info\info_share.lua for functions to print information accessed directly from windower
+files = require('files')
+info = loadstring(files.read('../info/info_share.lua'))()	--Load addons\info\info_share.lua for functions to print information accessed directly from windower
 
 require 'healBot_statics'
 require 'healBot_utils'
@@ -191,11 +192,11 @@ function getPlayerPriority(tname)
 	local pmInfo = partyMemberInfo[tname]
 	local jobprio = 3
 	if (pmInfo ~= nil) and (pmInfo.job ~= nil) then
-		jobprio = priorities.jobs[pmInfo.job:lower()]
+		jobprio = priorities.jobs[pmInfo.job:lower()] or 3
 	end
 	local playerprio = 3
 	if (priorities.players ~= nil) then
-		playerprio = priorities.players[tname:lower()]
+		playerprio = priorities.players[tname:lower()] or 3
 	end
 	return math.min(jobprio, playerprio)
 end
