@@ -155,9 +155,13 @@ function registerEffect(ai, tact, aname, tname, monitoring)
 				elseif spells_buffs:contains(spell.id) then
 					--The buff must already be active, or there must be some debuff preventing the buff from landing
 					local bname = getBuffForSpell(spell.en)
-					registerBuff(tname, bname, false)
-					if (bname == 'Haste') then
-						registerDebuff(tname, 'slow', true)
+					if (bname == nil) then
+						atc(123, 'ERROR: No buff found for spell: '..spell.en)
+					else
+						registerBuff(tname, bname, false)
+						if (bname == 'Haste') then
+							registerDebuff(tname, 'slow', true)
+						end
 					end
 				end
 			end
