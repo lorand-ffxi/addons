@@ -40,6 +40,7 @@ end)
 
 windower.register_event('zone change', function(new_zone, old_zone)
 	start_time = os.time()
+	player = windower.ffxi.get_player()
 end)
 
 windower.register_event('addon command', function(command,...)

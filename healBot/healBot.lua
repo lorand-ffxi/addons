@@ -1,8 +1,8 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.4.1'
-_addon.lastUpdate = '2015.02.16'
+_addon.version = '2.4.2'
+_addon.lastUpdate = '2015.02.21'
 
 require('luau')
 rarr = string.char(129,168)
@@ -91,8 +91,11 @@ windower.register_event('prerender', function()
 				local act = action.action
 				local tname = action.targetName
 				local msg = action.msg or ''
-				atcd(act.en..sparr..tname..msg)
-				wcmd(act.prefix, act.en, tname)
+				
+				if canCast(getActionFor(act.en)) then				
+					atcd(act.en..sparr..tname..msg)
+					wcmd(act.prefix, act.en, tname)
+				end
 			end
 			lastAction = now
 		end
@@ -211,13 +214,27 @@ function getRemovalPriority(ailment)
 	return removal_priorities[an:lower()] or 3
 end
 
+function getActionFor(actionName)
+	local spell = res.spells:with('en', actionName)
+	local abil = res.job_abilities:with('en', actionName)
+	if (spell ~= nil) then
+		return spell
+	elseif (abil ~= nil) then
+		return abil
+	end
+	return nil
+end
+
 function canCast(spell)
-	local player = windower.ffxi.get_player()
-	if (player == nil) or (spell == nil) then return false end
-	local mainCanCast = (spell.levels[player.main_job_id] ~= nil) and (spell.levels[player.main_job_id] <= player.main_job_level)
-	local subCanCast = (spell.levels[player.sub_job_id] ~= nil) and (spell.levels[player.sub_job_id] <= player.sub_job_level)
-	local spellAvailable = windower.ffxi.get_spells()[spell.id]
-	return spellAvailable and (mainCanCast or subCanCast)
+	if spell.prefix == '/magic' then
+		local player = windower.ffxi.get_player()
+		if (player == nil) or (spell == nil) then return false end
+		local mainCanCast = (spell.levels[player.main_job_id] ~= nil) and (spell.levels[player.main_job_id] <= player.main_job_level)
+		local subCanCast = (spell.levels[player.sub_job_id] ~= nil) and (spell.levels[player.sub_job_id] <= player.sub_job_level)
+		local spellAvailable = windower.ffxi.get_spells()[spell.id]
+		return spellAvailable and (mainCanCast or subCanCast)
+	end
+	return true
 end
 
 function addPlayer(list, player)
