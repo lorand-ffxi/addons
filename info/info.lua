@@ -1,8 +1,8 @@
 _addon.name = 'info'
 _addon.author = 'Lorand'
 _addon.command = 'info'
-_addon.version = '1.4.1'
-_addon.lastUpdate = '2015.02.15'
+_addon.version = '1.4.2'
+_addon.lastUpdate = '2015.03.03'
 
 --[[
 	Info is a Windower addon for FFXI that is designed to allow users to view
@@ -13,6 +13,8 @@ require('luau')
 res = require('resources')
 packets = require('packets')
 slips = require('slips')
+extdata = require('extdata')
+config = require('config')
 
 require 'info_share'
 
@@ -20,8 +22,8 @@ local showKB = false
 local showAnActionPacket = false
 
 windower.register_event('addon command', function (command,...)
-    command = command or 'help'
-    local args = {...}
+	command = command or 'help'
+	local args = {...}
 	
 	if command:lower() == 'reload' then
 		windower.send_command('lua reload '.._addon.name)
@@ -31,6 +33,10 @@ windower.register_event('addon command', function (command,...)
 		showKB = not showKB
 	elseif command:lower() == 'actionpacket' then
 		showAnActionPacket = true
+	elseif command:lower() == 'geardump' then
+		geardump()
+	elseif command:lower() == 'item_info' then
+		item_info()
 	else
 		info.process_input(command, args)
 	end
@@ -60,6 +66,78 @@ function atc(c, msg)
 		c = 0
 	end
 	windower.add_to_chat(c, msg)
+end
+
+function item_info()
+	local inv = windower.ffxi.get_items().inventory
+	for slot,itbl in pairs(inv) do
+		local irt = res.items[itbl.id]
+		if (irt == nil) then
+			atc('['..slot..'] '..itbl.id..' | NO INFO')
+		else
+			local augs = get_augment_string(itbl)
+			atc('['..slot..'] '..itbl.id..' | '..irt.enl:capitalize()..' | '..tostring(augs))
+		end
+	end
+end
+
+function get_augment_string(item)
+    local augments
+    if item.extdata then
+        augments = extdata.decode(item).augments or {}
+    else
+        augments = item.augment or item.augments
+    end
+
+    local started = false
+    if augments and #augments > 0 then
+        local aug_str = ''
+        for aug_ind,augment in pairs(augments) do
+            if augment ~= 'none' then
+                if started then
+                    aug_str = aug_str .. ','
+                end
+                
+                aug_str = aug_str.."'"..augment.."'"
+                started = true
+            end
+        end
+        
+        return aug_str
+    end
+end
+
+function geardump()
+	local items = windower.ffxi.get_items()
+	local bags = {items.wardrobe,items.locker,items.storage,items.sack,items.satchel,items.inventory,items.safe,items.case}
+	
+	local gear = {}
+	for _,tbl in pairs(bags) do
+		for i = 1, 80 do
+			local itbl = tbl[i]
+			local irt = res.items[itbl.id]
+			if (irt ~= nil) then
+				local augstr = get_augment_string(itbl)
+				local iname = irt.enl:capitalize()
+				gear['id'..itbl.id] = {id=itbl.id,name=iname,augs=augstr}
+			end
+		end
+	end
+	for slipid,sitems in pairs(slips.get_player_items()) do
+		for idx,iid in pairs(sitems) do
+			if (idx ~= 'n') then
+				local irt = res.items[iid]
+				if (irt ~= nil) then
+					local iname = irt.enl:capitalize()
+					gear['id'..iid] = {id=iid,name=iname}
+				else
+					atc(123,'Error: Unknown item with id '..tostring(iid))
+				end
+			end	
+		end
+	end
+	config.load(gear)
+	atc('Dumped gear.')
 end
 
 -----------------------------------------------------------------------------------------------------------

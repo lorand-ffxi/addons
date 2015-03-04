@@ -2,6 +2,13 @@
 <settings>
     <global>
         <profile>
+            <bee>
+                <stun>
+                    <1>Incisive Denouement</1>
+                    <2>Incisive Apotheosis</2>
+                    <3>Stinger Volley</3>
+                </stun>
+            </bee>
             <celaeno>
                 <stun>
                     <1>Typhoean Rage</1>
@@ -39,6 +46,36 @@
                     <5>Necrotic Brume</5>
                 </stun>
             </test>
+            <tojil>
+                <stun>
+                    <1>Incinerating Lahar</1>
+                    <2>Volcanic Stasis</2>
+                    <3>Blistering Roar</3>
+                </stun>
+            </tojil>
+            <tojil_all>
+                <stun>
+                    <1>Incinerating Lahar</1>
+                    <2>Volcanic Stasis</2>
+                    <3>Blistering Roar</3>
+                    <4>Searing Serration</4>
+                    <5>Batholithic Shell</5>
+                </stun>
+            </tojil_all>
+            <tojilpre>
+                <stun>
+                    <1>Whirling Inferno</1>
+                    <2>Foul Breath</2>
+                    <3>Oppressive Glare</3>
+                    <4>Calcifying Mist</4>
+                    <5>Testudo Tremor</5>
+                </stun>
+            </tojilpre>
+            <vw>
+                <turn>
+                    <1>Shah Mat</1>
+                </turn>
+            </vw>
         </profile>
     </global>
 </settings>

@@ -1,8 +1,8 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.4.2'
-_addon.lastUpdate = '2015.02.21'
+_addon.version = '2.4.31'
+_addon.lastUpdate = '2015.03.02'
 
 require('luau')
 rarr = string.char(129,168)
@@ -92,7 +92,7 @@ windower.register_event('prerender', function()
 				local tname = action.targetName
 				local msg = action.msg or ''
 				
-				if canCast(getActionFor(act.en)) then				
+				if canCast(getActionFor(act.en)) then			
 					atcd(act.en..sparr..tname..msg)
 					wcmd(act.prefix, act.en, tname)
 				end
@@ -170,7 +170,7 @@ function isPerformingAction(moving)
 		zone_wait = false
 		resetBuffTimers(nil, S{'Protect V','Shell V'})
 		checkOwnBuffs()
-	elseif buffActive('Sleep', 'Petrification', 'Charm', 'Terror', 'Lullaby', 'Stun') then
+	elseif (buffActive('Sleep', 'Petrification', 'Charm', 'Terror', 'Lullaby', 'Stun', 'Silence', 'Mute') ~= nil) then
 		acting = true
 		status = 'is disabled'
 	end

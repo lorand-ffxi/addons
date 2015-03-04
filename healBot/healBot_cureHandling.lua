@@ -13,7 +13,7 @@ function getPotentialCures()
 	for name,p in pairs(hpTable) do
 		if (p.hpp < 95) then
 			local spell = get_cure_to_cast(p.missing)
-			if (spell ~= nil) then
+			if (spell ~= nil) and (not isTooFar(name)) then
 				potentialActions[c] = {action=spell,targ_hpp=p.hpp,targetName=name,msg=' ('..p.missing..')'}
 				c = c + 1
 			end
