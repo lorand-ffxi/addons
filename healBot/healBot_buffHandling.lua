@@ -234,10 +234,13 @@ function validTarget(action, target)
 end
 
 function getBuffNameForAction(action)
-	if (action.type == 'JobAbility') then
-		return action.en
+	local spellName = action
+	if type(action) == 'table' then
+		if (action.type == 'JobAbility') then
+			return action.en
+		end
+		spellName = action.en
 	end
-	local spellName = action.en
 	if (buff_map[spellName] ~= nil) then
 		return buff_map[spellName]
 	else

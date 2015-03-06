@@ -41,9 +41,11 @@ end
 	@param monitoring the list of PCs that are being monitored
 --]]
 function processAction(ai, actor, monitoring)
+	if (actor == nil) then return end
 	local aname = actor.name
 	for _,targ in pairs(ai.targets) do
 		local target = windower.ffxi.get_mob_by_id(targ.id)
+		if (target == nil) then return end
 		local tname = target.name
 		
 		if (monitoring[aname] or monitoring[tname]) then
