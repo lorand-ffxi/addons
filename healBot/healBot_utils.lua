@@ -130,6 +130,17 @@ function processCommand(command,...)
 		else
 			atc('Invalid argunment for IgnoreTrusts: '..args[1])
 		end
+	elseif S{'showq','showqueue','queue'}:contains(command) then
+		if not validate(args, 1, 'Error: No argument specified for ShowQueue') then return end
+		if args[1]:lower() == 'on' then
+			showActionQueue = true
+			atc('Action Queue will now be displayed')
+		elseif args[1]:lower() == 'off' then
+			showActionQueue = false
+			atc('Action Queue will no longer be displayed')
+		else
+			atc('Invalid argument for ShowQueue'..args[1])
+		end
 	elseif command == 'status' then
 		printStatus()
 	elseif command == 'info' then

@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.4.4'
+_addon.version = '2.4.5'
 _addon.lastUpdate = '2015.03.06'
 
 require('luau')
@@ -34,6 +34,7 @@ extraWatchList = S{}
 
 local moveInfo = texts.new({pos={x=0,y=18}})
 local actionInfo = texts.new({pos={x=0,y=0}})
+actionQueue = texts.new({pos={x=-125,y=300},text={font='Arial',size=10},flags={right=true}})
 
 windower.register_event('load', function()
 	lastAction = os.clock()
@@ -47,6 +48,7 @@ windower.register_event('load', function()
 	showPacketInfo = false
 	showMoveInfo = false
 	showActionInfo = true
+	showActionQueue = true
 	debugMode = false
 	active = false
 	actionDelay = 0.08
@@ -85,7 +87,6 @@ windower.register_event('prerender', function()
 		
 		local busy = moving or acting
 		if active and (not busy) and ((now - lastAction) > actionDelay) then
-			--local action = cureSomeone() or checkDebuffs(player, debuffList)[1] or checkBuffs(player, buffList)[1]
 			local action = getActionToPerform()
 			if (action ~= nil) then
 				local act = action.action

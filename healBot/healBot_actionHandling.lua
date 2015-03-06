@@ -11,10 +11,13 @@ function getActionToPerform()
 	actions.debuffs = checkDebuffs()
 	actions.buffs = checkBuffs()
 	
+	local queue = L({})
+	
 	local danger = {60,40,20}
 	local cact = {id=-1,pp=9,hpp=100}
 	if (actions.cure ~= nil) then
 		for ci,cure_act in pairs(actions.cure) do
+			queue:append(tostring(cure_act.action.en)..' → '..tostring(cure_act.targetName))
 			if (cure_act.targetName == nil) then
 				--{action=spell,targ_hpp=p.hpp,targetName=p.name,msg=' ('..p.missing..')'}
 				atc(123, '['..ci..']'..tostring(cure_act.action.en)..sparr..tostring(cure_act.targetName)..tostring(cure_act.msg))
@@ -88,6 +91,7 @@ function getActionToPerform()
 			local target = getTarget(na_act.targetName)
 			local action = getAction(na_act.action.en)
 			if validTarget(action, target) then
+				queue:append(tostring(na_act.action.en)..' → '..tostring(na_act.targetName))
 				local na = {}
 				na.pp = getPlayerPriority(na_act.targetName)
 				na.ap = getRemovalPriority(na_act.debuffName)
@@ -133,6 +137,7 @@ function getActionToPerform()
 	local bact = {id=-1,ap=9,pp=9}
 	if (actions.buffs ~= nil) then
 		for bi,buff_act in pairs(actions.buffs) do
+			queue:append(tostring(buff_act.action.en)..' → '..tostring(buff_act.targetName))
 			if (buff_act.targetName == nil) then
 				--{action=spell,targ_hpp=p.hpp,targetName=p.name,msg=' ('..p.missing..')'}
 				atc(123, '['..bi..']'..tostring(buff_act.action.en)..sparr..tostring(buff_act.targetName)..tostring(buff_act.msg))
@@ -179,6 +184,9 @@ function getActionToPerform()
 		end
 	end
 	
+	actionQueue:text(getPrintable(queue))
+	actionQueue:visible(showActionQueue)
+	
 	if (cact.id ~= -1) then							--There's an available cure action
 		if (cact.hpp > 80) then						--The target's hp > 80%
 			if (nact.id ~= -1) and (nact.pp < cact.pp) then		--There's an available debuff removal action with higher priority
@@ -202,6 +210,19 @@ function getActionToPerform()
 		return actions.buffs[bact.id]
 	end
 	return nil
+end
+
+function getPrintable(queue)
+	local qstring = ''
+	for index,line in pairs(queue) do
+		if (tostring(index) ~= 'n') then
+			if (#qstring > 1) then
+				qstring = qstring..'\n'
+			end
+			qstring = qstring..line
+		end
+	end
+	return qstring
 end
 
 -----------------------------------------------------------------------------------------------------------
