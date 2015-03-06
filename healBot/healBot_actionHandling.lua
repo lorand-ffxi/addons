@@ -85,42 +85,46 @@ function getActionToPerform()
 				atc(123, '['..ni..']'..tostring(na_act.action.en)..sparr..tostring(na_act.targetName)..tostring(na_act.msg))
 			end
 			
-			local na = {}
-			na.pp = getPlayerPriority(na_act.targetName)
-			na.ap = getRemovalPriority(na_act.debuffName)
-			if (na.pp > nact.pp) then	--current player is lower priority
-				if (na.ap > nact.ap) then	--current debuff has lower priority
-				elseif (na.ap < nact.ap) then	--current debuff has higher priority
-					if ((nact.ap - na.ap) > 1) then
+			local target = getTarget(na_act.targetName)
+			local action = getAction(na_act.action.en)
+			if validTarget(action, target) then
+				local na = {}
+				na.pp = getPlayerPriority(na_act.targetName)
+				na.ap = getRemovalPriority(na_act.debuffName)
+				if (na.pp > nact.pp) then	--current player is lower priority
+					if (na.ap > nact.ap) then	--current debuff has lower priority
+					elseif (na.ap < nact.ap) then	--current debuff has higher priority
+						if ((nact.ap - na.ap) > 1) then
+							nact.id = ni
+							nact.ap = na.ap
+							nact.pp = na.pp
+						end
+					else				--current debuff has same priority
+					end
+				elseif (na.pp < nact.pp) then	--current player is higher priority
+					if (na.ap > nact.ap) then	--current debuff has lower priority
+						if ((nact.ap - na.ap) == 1) then
+							nact.id = ni
+							nact.ap = na.ap
+							nact.pp = na.pp
+						end
+					elseif (na.ap < nact.ap) then	--current debuff has higher priority
+						nact.id = ni
+						nact.ap = na.ap
+						nact.pp = na.pp
+					else				--current debuff has same priority
 						nact.id = ni
 						nact.ap = na.ap
 						nact.pp = na.pp
 					end
-				else				--current debuff has same priority
-				end
-			elseif (na.pp < nact.pp) then	--current player is higher priority
-				if (na.ap > nact.ap) then	--current debuff has lower priority
-					if ((nact.ap - na.ap) == 1) then
+				else				--both players have same priority
+					if (na.ap > nact.ap) then	--current debuff has lower priority
+					elseif (na.ap < nact.ap) then	--current debuff has higher priority
 						nact.id = ni
 						nact.ap = na.ap
 						nact.pp = na.pp
+					else				--current debuff has same priority
 					end
-				elseif (na.ap < nact.ap) then	--current debuff has higher priority
-					nact.id = ni
-					nact.ap = na.ap
-					nact.pp = na.pp
-				else				--current debuff has same priority
-					nact.id = ni
-					nact.ap = na.ap
-					nact.pp = na.pp
-				end
-			else				--both players have same priority
-				if (na.ap > nact.ap) then	--current debuff has lower priority
-				elseif (na.ap < nact.ap) then	--current debuff has higher priority
-					nact.id = ni
-					nact.ap = na.ap
-					nact.pp = na.pp
-				else				--current debuff has same priority
 				end
 			end
 		end

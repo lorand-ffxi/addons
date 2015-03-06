@@ -32,7 +32,26 @@ function info.process_input(command, args)
 		for c = 0, 256 do
 			atc(c, 'color test: '..c)
 		end
+	elseif command:lower() == 'colorize_test' then
+		atc(0,'Colorize Test')
+		for c = 0, 37 do
+			if (c<14) or (c>24) then
+				local line = ''
+				for i = 0, 9 do
+					if (#line > 1) then
+						line = line..' '
+					end
+					local n = (c*10) + i
+					local ns = '%03d':format(n):colorize(n)
+					line = line..ns
+				end
+				atc(0,line)
+			end
+		end
 	else
+		if (args ~= nil) and (sizeof(args) > 0) then
+			command = command..table.concat(args, ' ')
+		end
 		local parsed = info.parse_for_info(command)
 		if parsed ~= nil then
 			local msg = ':'
@@ -42,8 +61,28 @@ function info.process_input(command, args)
 			info.print_table(parsed, command..msg)
 		else
 			atc(3,'Error: Unable to parse valid command')
+			--info.print_table(args, 'Args Provided')
+			atc(4,'|'..command..'|')
 		end
 	end
+end
+
+function colorFor(col)
+	local cstr = ''
+	if not ((S{256,257}:contains(col)) or (col<1) or (col>511)) then
+		if (col <= 255) then
+			cstr = string.char(0x1F)..string.char(col)
+		else
+			cstr = string.char(0x1E)..string.char(col - 256)
+		end
+	end
+	return cstr
+end
+
+function string.colorize(str, new_col, reset_col)
+	new_col = new_col or 1
+	reset_col = reset_col or 1
+	return colorFor(new_col)..str..colorFor(reset_col)
 end
 
 --[[

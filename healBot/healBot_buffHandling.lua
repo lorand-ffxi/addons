@@ -89,8 +89,6 @@ function checkBuffs()
 						if (getRecast(action) == 0) then
 							potentialActions[c] = {['action']=action, ['targetName']=targ, ['buffName']=buff}
 							c = c + 1
-							--info.attempted = now
-							--return {['action']=action, ['targetName']=targ}
 						end
 					end
 				end
@@ -122,8 +120,6 @@ function checkDebuffs()
 						if (getRecast(spell) == 0) then
 							potentialActions[c] = {['action']=spell, ['targetName']=targ, ['msg']=' ('..debuff..')', ['debuffName']=debuff}
 							c = c + 1
-							--info.attempted = now
-							--return {['action']=spell, ['targetName']=targ, ['msg']=' ('..debuff..')'}
 						end
 					end
 				else
@@ -152,56 +148,17 @@ function registerNewBuff(args, use)
 		return
 	end
 	
-	local target = windower.ffxi.get_mob_by_name(targetName)
-	if target == nil then
-		if (targetName == '<t>') then
-			target = windower.ffxi.get_mob_by_target()
-		elseif S{'<me>','me'}:contains(targetName) then
-			target = windower.ffxi.get_mob_by_id(me.id)
-		end
-		if target == nil then		
-			atc('Invalid buff target: '..targetName)
-			return
-		end
+	local target = getTarget(targetName)
+	if (target == nil) then
+		atc('Invalid buff target: '..targetName)
+		return
 	end
-	
-	local action = {}
-	local spell = res.spells:with('en', spellName)
-	if (spell ~= nil) then
-		if not canCast(spell) then
-			atc('Unable to cast spell: '..spellName)
-			return
-		end
-		action = spell
-	else
-		if (target.id == me.id) then
-			local abil = res.job_abilities:with('en', spellName)
-			if (abil ~= nil) then
-				action = abil
-			else
-				atc('Invalid spell/ability name: '..spellName)
-				return
-			end
-		else
-			atc('Invalid spell name: '..spellName)
-			return
-		end
+	local action = getAction(spellName, target)
+	if (action == nil) then
+		atc('Unable to cast or invalid: '..spellName)
+		return
 	end
-	
-	local targetType = 'None'
-	if (target.in_alliance) then
-		if (target.in_party) then
-			if (me.name == target.name) then
-				targetType = 'Self'
-			else
-				targetType = 'Party'
-			end
-		else
-			targetType = 'Ally'
-		end
-	end
-	local validTargets = S(action.targets)
-	if (not validTargets:contains(targetType)) then
+	if not validTarget(action, target) then
 		atc(target.name..' is an invalid target for '..action.en..' (Type: '..targetType..')')
 		return
 	end
@@ -231,6 +188,51 @@ function registerNewBuff(args, use)
 	end
 end
 
+function getTarget(targetName)
+	local me = windower.ffxi.get_player()
+	local target = windower.ffxi.get_mob_by_name(targetName)
+	if (target == nil) then
+		if (targetName == '<t>') then
+			target = windower.ffxi.get_mob_by_target()
+		elseif S{'<me>','me'}:contains(targetName) then
+			target = windower.ffxi.get_mob_by_id(me.id)
+		end
+	end
+	return target
+end
+
+function getAction(actionName, target)
+	local me = windower.ffxi.get_player()
+	local action = nil
+	local spell = res.spells:with('en', actionName)
+	if (spell ~= nil) and canCast(spell) then
+		action = spell
+	elseif (target ~= nil) and (target.id == me.id) then
+		local abil = res.job_abilities:with('en', actionName)
+		if (abil ~= nil) then
+			action = abil
+		end
+	end
+	return action
+end
+
+function validTarget(action, target)
+	local me = windower.ffxi.get_player()
+	local targetType = 'None'
+	if (target.in_alliance) then
+		if (target.in_party) then
+			if (me.name == target.name) then
+				targetType = 'Self'
+			else
+				targetType = 'Party'
+			end
+		else
+			targetType = 'Ally'
+		end
+	end
+	return S(action.targets):contains(targetType)
+end
+
 function getBuffNameForAction(action)
 	if (action.type == 'JobAbility') then
 		return action.en
@@ -258,6 +260,7 @@ function registerDebuff(targetName, debuffName, gain)
 	end
 	if (debuffName == 'slow') then
 		registerBuff(targetName, 'Haste', false)
+		registerBuff(targetName, 'Flurry', false)
 	end
 	
 	if gain then

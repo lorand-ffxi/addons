@@ -1,8 +1,8 @@
 _addon.name = 'info'
 _addon.author = 'Lorand'
 _addon.command = 'info'
-_addon.version = '1.4.2'
-_addon.lastUpdate = '2015.03.03'
+_addon.version = '1.4.3'
+_addon.lastUpdate = '2015.03.05'
 
 --[[
 	Info is a Windower addon for FFXI that is designed to allow users to view
@@ -65,7 +65,7 @@ function atc(c, msg)
 		msg = c
 		c = 0
 	end
-	windower.add_to_chat(c, msg)
+	windower.add_to_chat(c, windower.to_shift_jis(msg))
 end
 
 function item_info()
