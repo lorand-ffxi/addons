@@ -1,7 +1,7 @@
 _addon.name = 'healBot'
 _addon.author = 'Lorand'
 _addon.command = 'hb'
-_addon.version = '2.4.52'
+_addon.version = '2.5.0'
 _addon.lastUpdate = '2015.03.06'
 
 require('luau')
@@ -35,6 +35,7 @@ extraWatchList = S{}
 local moveInfo = texts.new({pos={x=0,y=18}})
 local actionInfo = texts.new({pos={x=0,y=0}})
 actionQueue = texts.new({pos={x=-125,y=300},text={font='Arial',size=10},flags={right=true}})
+local montoredBox = texts.new({pos={x=-150,y=600},text={font='Arial',size=10},flags={right=true}})
 
 windower.register_event('load', function()
 	lastAction = os.clock()
@@ -45,17 +46,13 @@ windower.register_event('load', function()
 	local player = windower.ffxi.get_player()
 	myName = player and player.name or 'Player'
 	
-	showPacketInfo = false
-	showMoveInfo = false
-	showActionInfo = true
-	showActionQueue = true
+	modes = {['showPacketInfo']=false,['showMoveInfo']=false,['showActionInfo']=true,['showActionQueue']=true,['showMonitored']=true,['ignoreTrusts']=true}
 	debugMode = false
 	active = false
 	actionDelay = 0.08
 	minCureTier = 3
 	lastActingState = false
 	partyMemberInfo = {}
-	ignoreTrusts = true
 end)
 
 windower.register_event('logout', function()
@@ -139,7 +136,7 @@ function isMoving()
 		timeAtPos = timeAtPos..'.0'
 	end
 	moveInfo:text('Time @ '..currentPos:toString()..': '..timeAtPos..'s')
-	moveInfo:visible(showMoveInfo)
+	moveInfo:visible(modes.showMoveInfo)
 	return moving
 end
 
@@ -169,7 +166,7 @@ function isPerformingAction(moving)
 		zone_wait = true
 	elseif zone_wait then
 		zone_wait = false
-		resetBuffTimers(nil, S{'Protect V','Shell V'})
+		resetBuffTimers('ALL', S{'Protect V','Shell V'})
 		checkOwnBuffs()
 	elseif (buffActive('Sleep', 'Petrification', 'Charm', 'Terror', 'Lullaby', 'Stun', 'Silence', 'Mute') ~= nil) then
 		acting = true
@@ -177,7 +174,7 @@ function isPerformingAction(moving)
 	end
 	
 	actionInfo:text(myName..status)
-	actionInfo:visible(showActionInfo)
+	actionInfo:visible(modes.showActionInfo)
 	return acting
 end
 
@@ -240,7 +237,7 @@ end
 
 function addPlayer(list, player)
 	if (player ~= nil) and (not (ignoreList:contains(player.name))) then
-		if (ignoreTrusts and trusts:contains(player.name)) then return end
+		if (modes.ignoreTrusts and trusts:contains(player.name) and (not extraWatchList:contains(player.name))) then return end
 		local status = player.mob and player.mob.status or player.status
 		if (S{2,3}:contains(status)) or (player.hpp <= 0) then
 			--Player is dead.  Reset their buff/debuff lists and don't include them in monitored list
@@ -273,10 +270,12 @@ function getMonitoredPlayers()
 	
 	for extraName,_ in pairs(extraWatchList) do
 		local extraPlayer = windower.ffxi.get_mob_by_name(extraName)
-		if (extraPlayer ~= nil) and (not targets:contains(extraPlayer.name)) and (me.zone == extraPlayer.zone) then
+		if (extraPlayer ~= nil) and (not targets:contains(extraPlayer.name)) then
 			addPlayer(targets, extraPlayer)
 		end
 	end
+	montoredBox:text(getPrintable(targets, true))
+	montoredBox:visible(modes.showMonitored)
 	return targets
 end
 

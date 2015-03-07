@@ -5,8 +5,8 @@
 --]]
 --==============================================================================
 
-buffList = {}
-debuffList = {}
+debuffList = debuffList or {}
+buffList = buffList or {}
 
 --==============================================================================
 --			Local Player Buff Checking
@@ -304,12 +304,16 @@ function resetDebuffTimers(player)
 end
 
 function resetBuffTimers(player, exclude)
-	if buffList[player] == nil then
+	if (player == nil) then
+		atc(123,'Error: Invalid player name passed to resetBuffTimers.')
+		return
+	elseif (player == 'ALL') then
 		for p,l in pairs(buffList) do
 			resetBuffTimers(p)
 		end
 		return
 	end
+	buffList[player] = buffList[player] or {}
 	for buffName,_ in pairs(buffList[player]) do
 		if exclude ~= nil then
 			if not (exclude:contains(buffName)) then

@@ -185,7 +185,7 @@ function getActionToPerform()
 	end
 	
 	actionQueue:text(getPrintable(queue))
-	actionQueue:visible(showActionQueue)
+	actionQueue:visible(modes.showActionQueue)
 	
 	if (cact.id ~= -1) then							--There's an available cure action
 		if (cact.hpp > 80) then						--The target's hp > 80%
@@ -210,19 +210,6 @@ function getActionToPerform()
 		return actions.buffs[bact.id]
 	end
 	return nil
-end
-
-function getPrintable(queue)
-	local qstring = ''
-	for index,line in pairs(queue) do
-		if (tostring(index) ~= 'n') then
-			if (#qstring > 1) then
-				qstring = qstring..'\n'
-			end
-			qstring = qstring..line
-		end
-	end
-	return qstring
 end
 
 -----------------------------------------------------------------------------------------------------------

@@ -31,13 +31,6 @@ function processCommand(command,...)
 		else
 			atc('Error: Invalid argument specified for minCure')
 		end
-	elseif command == 'moveinfo' then
-		if not validate(args, 1, 'Error: No argument specified for moveInfo') then return end
-		if S{'show', 'on'}:contains(args[1]:lower()) then
-			showMoveInfo = true
-		elseif S{'hide', 'off'}:contains(args[1]:lower()) then
-			showMoveInfo = false
-		end
 	elseif command == 'reset' then
 		local b = false
 		local d = false
@@ -95,52 +88,20 @@ function processCommand(command,...)
 			follow = true
 			atc('Now following '..followTarget)
 		end
-	elseif command == 'packetinfo' then
-		if not validate(args, 1, 'Error: No argument specified for PacketInfo') then return end
-		if args[1]:lower() == 'on' then
-			atc('Will now display packet info')
-			showPacketInfo = true
-		elseif args[1]:lower() == 'off' then
-			atc('Will no longer display packet info')
-			showPacketInfo = false
-		else
-			atc('Invalid argunment for packetInfo: '..args[1])
-		end
-	elseif command == 'actioninfo' then
-		if not validate(args, 1, 'Error: No argument specified for ActionInfo') then return end
-		if args[1]:lower() == 'on' then
-			atc('Will now display action info')
-			showActionInfo = true
-		elseif args[1]:lower() == 'off' then
-			atc('Will no longer display action info')
-			showActionInfo = false
-		else
-			atc('Invalid argunment for packetInfo: '..args[1])
-		end
 	elseif S{'ignore', 'unignore', 'watch', 'unwatch'}:contains(command) then
 		monitorCommand(command, args[1])
+	elseif command == 'moveinfo' then
+		toggleMode('showMoveInfo', args[1], 'Movement info', 'MoveInfo')
+	elseif command == 'packetinfo' then
+		toggleMode('showPacketInfo', args[1], 'Packet info display', 'PacketInfo')
+	elseif command == 'actioninfo' then
+		toggleMode('showActionInfo', args[1], 'Action info display', 'ActionInfo')
 	elseif command == 'ignoretrusts' then
-		if not validate(args, 1, 'Error: No argument specified for IgnoreTrusts') then return end
-		if args[1]:lower() == 'on' then
-			atc('Will ignore Trust NPCs')
-			ignoreTrusts = true
-		elseif args[1]:lower() == 'off' then
-			atc('Will not ignore Trust NPCs')
-			ignoreTrusts = false
-		else
-			atc('Invalid argunment for IgnoreTrusts: '..args[1])
-		end
+		toggleMode('ignoreTrusts', args[1], 'Ignoring of Trust NPCs', 'IgnoreTrusts')
 	elseif S{'showq','showqueue','queue'}:contains(command) then
-		if not validate(args, 1, 'Error: No argument specified for ShowQueue') then return end
-		if args[1]:lower() == 'on' then
-			showActionQueue = true
-			atc('Action Queue will now be displayed')
-		elseif args[1]:lower() == 'off' then
-			showActionQueue = false
-			atc('Action Queue will no longer be displayed')
-		else
-			atc('Invalid argument for ShowQueue'..args[1])
-		end
+		toggleMode('showActionQueue', args[1], 'Action queue', 'ShowQueue')
+	elseif S{'monitored','showmonitored'}:contains(command) then
+		toggleMode('showMonitored', args[1], 'Monitored players list', 'ShowMonitored')
 	elseif command == 'status' then
 		printStatus()
 	elseif command == 'info' then
@@ -149,13 +110,28 @@ function processCommand(command,...)
 			atc(3,'If you would like to use this function, please visit https://github.com/lorand-ffxi/addons to download it.')
 			return
 		end
-		local cmd = args[1]		--Take the first element as the command
-		if (#args > 1) then		--If there were more args provided
-			table.remove(args, 1)	--Remove the first from the list of args
-		end
+		local cmd = args[1]	--Take the first element as the command
+		table.remove(args, 1)	--Remove the first from the list of args
 		info.process_input(cmd, args)
 	else
 		atc('Error: Unknown command')
+	end
+end
+
+function toggleMode(mode, cmd, msg, msgErr)
+	if (modes[mode] == nil) then
+		atc(123,'Error: Invalid mode to toggle: '..tostring(mode))
+		return
+	end
+	cmd = cmd and cmd:lower() or (modes[mode] and 'off' or 'on')
+	if (cmd == 'on') then
+		modes[mode] = true
+		atc(msg..' is now on.')
+	elseif (cmd == 'off') then
+		modes[mode] = false
+		atc(msg..' is now off.')
+	else
+		atc(123,'Invalid argument for '..msgErr..': '..cmd)
 	end
 end
 
@@ -372,6 +348,25 @@ function sizeof(tbl)
 	local c = 0
 	for _,_ in pairs(tbl) do c = c + 1 end
 	return c
+end
+
+function getPrintable(list, inverse)
+	local qstring = ''
+	for index,line in pairs(list) do
+		local check = index
+		local add = line
+		if (inverse) then
+			check = line
+			add = index
+		end
+		if (tostring(check) ~= 'n') then
+			if (#qstring > 1) then
+				qstring = qstring..'\n'
+			end
+			qstring = qstring..add
+		end
+	end
+	return qstring
 end
 
 -----------------------------------------------------------------------------------------------------------

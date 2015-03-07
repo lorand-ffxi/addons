@@ -51,7 +51,7 @@ function processAction(ai, actor, monitoring)
 		if (monitoring[aname] or monitoring[tname]) then
 			for _,tact in pairs(targ.actions) do
 				if not (messages_blacklist:contains(tact.message_id)) then
-					if showPacketInfo then
+					if modes.showPacketInfo then
 						local msg = res.action_messages[tact.message_id] or {en='???'}
 						atc('[0x28]Action('..tact.message_id..'): '..aname..' { '..ai.param..' } '..rarr..' '..tname..' { '..tact.param..' } | '..msg.en)
 					end
@@ -83,7 +83,7 @@ function processMessage(ai, actor, monitoring)
 	local tname = target.name
 	if (monitoring[aname] or monitoring[tname]) then
 		if not (messages_blacklist:contains(ai.message_id)) then
-			if showPacketInfo then
+			if modes.showPacketInfo then
 				local msg = res.action_messages[ai.message_id] or {en='???'}
 				local params = tostring(ai.param_1)..', '..tostring(ai.param_2)..', '..tostring(ai.param_3)
 				atc('[0x29]Message('..ai.message_id..'): '..aname..' { '..params..' } '..rarr..' '..tname..' | '..msg.en)
