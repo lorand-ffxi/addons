@@ -90,7 +90,7 @@ function getActionToPerform()
 			
 			local target = getTarget(na_act.targetName)
 			local action = getAction(na_act.action.en)
-			if validTarget(action, target) then
+			if (target ~= nil) and (action ~= nil) and validTarget(action, target) then
 				queue:append(tostring(na_act.action.en)..' → '..tostring(na_act.targetName))
 				local na = {}
 				na.pp = getPlayerPriority(na_act.targetName)
