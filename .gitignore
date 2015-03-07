@@ -35,5 +35,6 @@ update/*
 azureSets/Readme.md
 azureSets/azuresets.lua
 healBot_*.7z
-info/data/settings.xml
 HealBot*
+OhNoYouDont*
+info*
