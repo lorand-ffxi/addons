@@ -34,7 +34,6 @@ shortcuts/targets.lua
 update/*
 azureSets/Readme.md
 azureSets/azuresets.lua
-healBot/discarded_code.lua
 healBot_*.7z
-healBot_stable/*
 info/data/settings.xml
+HealBot/*
