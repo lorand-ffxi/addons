@@ -41,8 +41,6 @@ windower.register_event('addon command', function (command,...)
 		else
 			atc(123,'Error: Invalid spell name: '..arg_string..' | '..spellName)
 		end
-		
-		
 	elseif command == 'status' then
 		print_status()
 	else

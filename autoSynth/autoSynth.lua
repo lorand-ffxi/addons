@@ -1,14 +1,16 @@
 _addon.name = 'autoSynth'
 _addon.author = 'Lorand'
 _addon.commands = {'autoSynth', 'as'}
-_addon.version = '1.1'
+_addon.version = '1.2'
 
-require('luau')
-res = require('resources')
-packets = require('packets')
+_libs = _libs or {}
+_libs.luau = _libs.luau or require('luau')
+
+local res = require('resources')
+local packets = require('packets')
 
 local synthesisPossible = false
-local baseDelay = 20
+local baseDelay = 2
 local qualities = {[0]='NQ', [1]='Break', [2]='HQ'}
 local crystals = {[16]='Water',[17]='Wind',[18]='Fire',[19]='Earth',[20]='Lightning',[21]='Ice',[22]='Light',[23]='Dark'}
 local rarr = string.char(129,168)
@@ -30,7 +32,7 @@ windower.register_event('addon command', function (command,...)
     local args = T{...}:map(string.lower)
 	
 	if command == 'reload' then
-		windower.send_command('lua unload autoSynth; lua load autoSynth')
+		windower.send_command('lua reload autoSynth')
 	elseif command == 'unload' then
 		windower.send_command('lua unload autoSynth')
 	elseif S{'craft','start','on'}:contains(command) then
@@ -82,7 +84,12 @@ end
 function trySynth()
 	if synthesisPossible then
 		windower.send_command('input /lastsynth')
-		local waitTime = baseDelay + math.random(0, 5)
+	end
+end
+
+function delayedAttempt()
+	if synthesisPossible then
+		local waitTime = baseDelay + math.random(0, 2)
 		windower.send_command('wait '..waitTime..'; autoSynth attempt')
 	end
 end
@@ -93,8 +100,10 @@ windower.register_event('incoming text',function (original)
 		printStatus()
 	elseif original == 'You must wait longer before repeating that action.' then
 		baseDelay = baseDelay + 1
+		delayedAttempt()
 	elseif original == 'You cannot use that command during synthesis.' then
 		baseDelay = baseDelay + 2
+		delayedAttempt()
 	end
 end)
 
@@ -122,6 +131,7 @@ windower.register_event('incoming chunk',function (id,data)
 				windower.add_to_chat(8, ' '..rarr..' HQ Tier '..result..'!')
 			end
 		end
+		delayedAttempt()
 	end
 end)
 
