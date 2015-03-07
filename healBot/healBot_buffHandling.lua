@@ -136,18 +136,25 @@ end
 --==============================================================================
 
 function registerNewBuff(args, use)
-	local me = windower.ffxi.get_player()
 	local targetName = args[1] and args[1] or ''
-	local spellA = args[2] and args[2] or ''
-	local spellB = args[3] and ' '..args[3] or ''
-	local spellC = args[4] and ' '..args[4] or ''
-	local spellName = formatSpellName(spellA..spellB..spellC)
-	
-	if spellName == nil then
+	table.remove(args, 1)
+	local arg_string = table.concat(args,' ')
+	local snames = arg_string:split(',')
+	for index,sname in pairs(snames) do
+		if (tostring(index) ~= 'n') then
+			registerNewBuffName(targetName, sname:trim(), use)
+		end
+	end
+end
+
+function registerNewBuffName(targetName, bname, use)
+	local spellName = formatSpellName(bname)
+	if (spellName == nil) then
 		atc('Error: Unable to parse spell name')
 		return
 	end
 	
+	local me = windower.ffxi.get_player()
 	local target = getTarget(targetName)
 	if (target == nil) then
 		atc('Invalid buff target: '..targetName)
