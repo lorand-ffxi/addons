@@ -166,7 +166,7 @@ function registerNewBuffName(targetName, bname, use)
 		return
 	end
 	if not validTarget(action, target) then
-		atc(target.name..' is an invalid target for '..action.en..' (Type: '..targetType..')')
+		atc(target.name..' is an invalid target for '..action.en)
 		return
 	end
 	

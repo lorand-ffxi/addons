@@ -68,16 +68,23 @@ function processCommand(command,...)
 			atc('Error: Invalid argument specified for BuffList: '..args[1])
 		end
 	elseif S{'follow','f'}:contains(command) then
-		if not validate(args, 1, 'Error: No argument specified for follow') then return end
-		if S{'off', 'end', 'false'}:contains(args[1]:lower()) then
+		local cmd = args[1] and args[1]:lower() or (follow and 'off' or 'resume')
+		if S{'off','end','false','pause'}:contains(cmd) then
 			follow = false
-		elseif S{'distance', 'dist', 'd'}:contains(args[1]:lower()) then
+		elseif S{'distance', 'dist', 'd'}:contains(cmd) then
 			local dist = tonumber(args[2])
 			if (dist ~= nil) and (0 < dist) and (dist < 45) then
 				followDist = dist
 				atc('Follow distance set to '..followDist)
 			else
 				atc('Error: Invalid argument specified for follow distance')
+			end
+		elseif S{'resume'}:contains(cmd) then
+			if (followTarget ~= nil) then
+				follow = true
+				atc('Now following '..followTarget..'.')
+			else
+				atc(123,'Error: Unable to resume follow - no target set')
 			end
 		else
 			local name = args[1]
@@ -86,7 +93,7 @@ function processCommand(command,...)
 			end
 			followTarget = formatName(name)
 			follow = true
-			atc('Now following '..followTarget)
+			atc('Now following '..followTarget..'.')
 		end
 	elseif S{'ignore', 'unignore', 'watch', 'unwatch'}:contains(command) then
 		monitorCommand(command, args[1])

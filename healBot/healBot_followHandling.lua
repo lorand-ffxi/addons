@@ -13,15 +13,32 @@ followDelay = 0.08
 local Pos = require('position')
 local quadrants = {NW = {-1, 1}, SW = {1, -1}, NE = {0, -1}, SE = {0, 1}}
 local compass = {N = -math.pi/2, S = math.pi/2, E = 0, W = math.pi, NW = -math.pi*3/4, NE = -math.pi*1/4, SW = math.pi*3/4, SE = math.pi*1/4}
+-- local lastPos = Pos.new(0,0,0)
+-- local posArrival = os.clock()
+-- local wasIdle = true
 
 function needToMove(targetName)
+	local shouldMove = false
 	if targetName ~= nil then
 		local target = windower.ffxi.get_mob_by_name(targetName)
 		if target ~= nil then
-			return math.sqrt(target.distance) > followDist
+			shouldMove = math.sqrt(target.distance) > followDist
 		end
 	end
-	return false
+	
+	-- local pos = getPosition()
+	-- local now = os.clock()
+	-- if (lastPos:getDistance(pos) > 0.75) then
+		-- lastPos = pos
+		-- posArrival = now
+	-- end
+	
+	-- if (shouldMove) and (not wasIdle) and ((now-posArrival) > 1) then
+		-- return false
+	-- end
+	
+	-- wasIdle = not shouldMove
+	return shouldMove
 end
 
 function moveTowards(targetName)
