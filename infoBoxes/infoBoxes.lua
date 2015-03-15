@@ -18,6 +18,7 @@ boxSettings.acc = {pos = {x = -125, y = -215}, flags = {bottom = true, right = t
 boxSettings.speed = {pos = {x = -60, y = -20}, flags = {bottom = true, right = true}}
 boxSettings.dist = {pos = {x = -178, y = 21}, text = {font='Arial', size = 14}, flags = {right = true}}
 boxSettings.zt = {pos = {x = -100, y = 0}, text = {font='Arial', size = 12}, flags = {right = true}}
+boxSettings.mobHp = {pos={x=400,y=0}}
 
 local boxes = {}
 local player
@@ -32,6 +33,7 @@ windower.register_event('load', 'login', function()
 	boxes.speed = InfoBox.new(boxSettings.speed)
 	boxes.dist = InfoBox.new(boxSettings.dist)
 	boxes.zt = InfoBox.new(boxSettings.zt)
+	boxes.mobHp = InfoBox.new(boxSettings.mobHp)
 end)
 
 windower.register_event('logout', function()
@@ -86,11 +88,25 @@ windower.register_event('prerender', function()
 			end
 			boxes.targHp:updateContents(target.hpp..'%')
 			boxes.dist:updateContents('%.1f':format(target.distance:sqrt()))
+			
+			if (target.is_npc) then
+				lastTarget = target.id
+			end
 		else
 			boxes.target:hide()
 			boxes.targHp:hide()
 			boxes.dist:hide()
 		end
+		
+		if (lastTarget ~= nil) then
+			local lastMob = windower.ffxi.get_mob_by_id(lastTarget)
+			if (lastMob ~= nil) then
+				boxes.mobHp:updateContents(lastMob.name..': '..lastMob.hpp..'%')
+			end
+		else
+			boxes.mobHp:hide()
+		end
+		
 		
 		if (acc.hits ~= 0) or (acc.misses ~= 0) then
 			boxes.acc:updateContents(calcAcc())

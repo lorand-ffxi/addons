@@ -1,7 +1,7 @@
 _addon.name = 'autoSynth'
 _addon.author = 'Lorand'
 _addon.commands = {'autoSynth', 'as'}
-_addon.version = '1.2'
+_addon.version = '1.2.1'
 
 _libs = _libs or {}
 _libs.luau = _libs.luau or require('luau')
@@ -104,6 +104,9 @@ windower.register_event('incoming text',function (original)
 	elseif original == 'You cannot use that command during synthesis.' then
 		baseDelay = baseDelay + 2
 		delayedAttempt()
+	elseif original == 'Unable to execute that command. Your inventory is full.' then
+		synthesisPossible = false
+		printStatus()
 	end
 end)
 
