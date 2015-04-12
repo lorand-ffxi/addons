@@ -1,7 +1,7 @@
 _addon.name = 'spellSpammer'
 _addon.author = 'Lorand'
 _addon.commands = {'spam','spellSpammer'}
-_addon.version = '1.2'
+_addon.version = '1.2.1'
 
 local res = require('resources')
 local config = require('config')
@@ -80,14 +80,21 @@ windower.register_event('prerender', function()
 	end
 end)
 
+function sizeof(tbl)
+	local c = 0
+	for _,_ in pairs(tbl) do c = c + 1 end
+	return c
+end
+
 function get_spell()
-	if (lastIndex < 1) or (lastIndex > #spellsToSpam) then
-		lastIndex = 1
-	else
-		lastIndex = lastIndex + 1
+	local index = lastIndex + 1
+	if (index < 1) or (index > sizeof(spellsToSpam)) then
+		index = 1
 	end
-	local spell_name = spellsToSpam[lastIndex]
-	return res.spells:with('en', spell_name)
+	local spell_name = spellsToSpam[index]
+	local spell = res.spells:with('en', spell_name)
+	lastIndex = index
+	return spell
 end
 
 function print_status()
