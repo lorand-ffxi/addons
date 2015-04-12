@@ -1,12 +1,14 @@
 _addon.name = 'spellSpammer'
 _addon.author = 'Lorand'
 _addon.commands = {'spam','spellSpammer'}
-_addon.version = '1.1'
+_addon.version = '1.2'
 
 local res = require('resources')
 local config = require('config')
 local aliases = config.load('..\\shortcuts\\data\\aliases.xml')
-local spellToSpam = 'Stone'
+--local spellToSpam = 'Stone'
+local spellsToSpam = {'Fire Threnody','Ice Threnody'}
+local lastIndex = 0
 local keepSpamming = false
 local spamDelay = 0.8
 
@@ -58,9 +60,10 @@ windower.register_event('prerender', function()
 		if (now - lastAttempt) >= spamDelay then
 			local player = windower.ffxi.get_player()
 			local mob = windower.ffxi.get_mob_by_target()
-			local spell = res.spells:with('en', spellToSpam)
+			--local spell = res.spells:with('en', spellToSpam)
+			local spell = get_spell()
 			
-			if (player ~= nil) and (player.status == 1) and (mob ~= nil) then
+			if (player ~= nil) and (player.status == 1) and (mob ~= nil) and (spell ~= nil) then
 				if (windower.ffxi.get_spell_recasts()[spell.recast_id] == 0) then
 					if (player.vitals.mp >= spell.mp_cost) and (mob.hpp > 0) then
 						windower.send_command('input '..spell.prefix..' "'..spell.en..'" <t>')
@@ -76,6 +79,16 @@ windower.register_event('prerender', function()
 		end
 	end
 end)
+
+function get_spell()
+	if (lastIndex < 1) or (lastIndex > #spellsToSpam) then
+		lastIndex = 1
+	else
+		lastIndex = lastIndex + 1
+	end
+	local spell_name = spellsToSpam[lastIndex]
+	return res.spells:with('en', spell_name)
+end
 
 function print_status()
 	local onoff = keepSpamming and 'On' or 'Off'

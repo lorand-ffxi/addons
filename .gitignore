@@ -25,6 +25,7 @@ timestamp/*
 Text/*
 TParty/*
 Treasury/*
+eval/*
 pet_fix/pet_fix.lua
 shortcuts/helper_functions.lua
 shortcuts/readme.md
@@ -40,3 +41,5 @@ OhNoYouDont*
 info*
 discarded code.lua
 GMmode/bintest.txt
+sparkGil/sparkGil.lua
+ParseBoard/*
