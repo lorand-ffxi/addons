@@ -1,9 +1,10 @@
 _addon.name = 'jponry'
 _addon.author = 'Lorand'
 _addon.command = 'jponry'
-_addon.version = '1.3'
+_addon.version = '1.4'
 
-chars = require('chat.chars')
+local chars = require('chat.chars')
+require('luau')
 
 local charsb = {['j^'] = string.char(129, 79)}
 
@@ -46,6 +47,16 @@ windower.register_event('addon command', function (command,...)
 		convert(args, 'r')
 	else
 		convert(args, 'j', command)
+	end
+end)
+
+windower.register_event('outgoing text', function(_, modified)
+	if (modified:contains('<thpp>')) then
+		local targ = windower.ffxi.get_mob_by_target()
+		if (targ ~= nil) then
+			local reptxt = tostring(targ.hpp)..'%':escape()
+			return modified:gsub('<thpp>', reptxt)
+		end
 	end
 end)
 

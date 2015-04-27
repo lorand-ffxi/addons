@@ -1,27 +1,39 @@
 _addon.name = 'autoWeaponskill'
 _addon.author = 'Lorand'
-_addon.command = 'autows'
-_addon.version = '0.0.0.1'
+_addon.commands = {'autows','aws'}
+_addon.version = '0.2'
 
+_libs = _libs or {}
+_libs.luau = _libs.luau or require('luau')
+
+debugging = false
 useAutows = false
+useAutoRA = false
+araDelayed = 0
 autoWsCmd = ''
-autowsHpLt = true
-autowsMobHp = 35
+autowsHpLt = false
+autowsMobHp = 0
 autowsDelay = 0.8
 mobs = {}
 
 windower.register_event('addon command', function (command,...)
-    command = command and command:lower() or 'help'
-    local args = {...}
+	command = command and command:lower() or 'help'
+	local args = {...}
 	
-	if command == 'reload' then
-		windower.send_command('lua unload autoWeaponskill; lua load autoWeaponskill')
-	elseif command == 'unload' then
-		windower.send_command('lua unload autoWeaponskill')
-	elseif command == 'toggle' then
+	if (command == 'reload') then
+		windower.send_command('lua reload '.._addon.name)
+	elseif (command == 'unload') then
+		windower.send_command('lua unload '.._addon.name)
+	elseif S{'enable','on','start'}:contains(command) then
+		useAutows = true
+		print_status()
+	elseif S{'disable','off','stop'}:contains(command) then
+		useAutows = false
+		print_status()
+	elseif (command == 'toggle') then
 		useAutows = not useAutows
 		print_status()
-	elseif command == 'set' then
+	elseif S{'set','use','ws'}:contains(command) then
 		autoWsCmd = '/ws "'
 		for i = 1, #args, 1 do
 			autoWsCmd = autoWsCmd..args[i]
@@ -31,16 +43,16 @@ windower.register_event('addon command', function (command,...)
 		end
 		autoWsCmd = autoWsCmd..'" <t>'
 		print_status()
-	elseif command == '<' then
+	elseif (command == '<') then
 		autowsHpLt = true
 		print_status()
-	elseif command == '>' then
+	elseif (command == '>') then
 		autowsHpLt = false
 		print_status()
-	elseif command == 'hp' then
+	elseif (command == 'hp') then
 		autowsMobHp = tonumber(args[1])
 		print_status()
-	elseif command == 'mob' then
+	elseif (command == 'mob') then
 		local mobName = ''
 		for i = 3, #args, 1 do
 			mobName = mobName..args[i]
@@ -52,34 +64,34 @@ windower.register_event('addon command', function (command,...)
 			hp = tonumber(args[2]),
 			sign = args[1]
 		}
-	elseif command == 'status' then
+	elseif (command == 'autora') then
+		local cmd = args[2] ~= nil and args[2]:lower() or (useAutoRA and 'off' or 'on')
+		if S{'on'}:contains(cmd) then
+			useAutoRA = true
+			atc('AutoWS will now resume auto ranged attacks after WSing')
+		elseif S{'off'}:contains(cmd) then
+			useAutoRA = false
+			atc('AutoWS will no longer resume auto ranged attacks after WSing')
+		else
+			atc(123,'Error: invalid argument for AutoRA: '..cmd)
+		end
+	elseif (command == 'status') then
 		print_status()
-	elseif command == 'info' then
-		printInfo()
 	else
-		windower.add_to_chat(0, 'Error: Unknown command')
+		atc('Error: Unknown command')
 	end
 end)
 
 windower.register_event('load', function()
 	autowsLastCheck = os.clock()
-	
-	windower.add_to_chat(0, 'autoWeponskill commands:')
-	windower.add_to_chat(0, 'autows mob <sign> <hp%> <name>')
-	windower.add_to_chat(0, 'autows hp <hp%>')
-	windower.add_to_chat(0, 'autows <')
-	windower.add_to_chat(0, 'autows >')
-	windower.add_to_chat(0, 'autows set <weaponskill name>')
-	windower.add_to_chat(0, 'autows toggle')
-	
-	local player = windower.ffxi.get_player()
-	if (player.name == 'Lorand') and (player.main_job == 'NIN') then
-		windower.send_command('autows set Blade: Metsu')
-		windower.send_command('autows toggle')
-		windower.send_command('autows mob < 20 Slime Mold')
-		windower.send_command('autows mob < 40 Phlebotomic Slug')
-	end
-	
+	atc('autoWeponskill commands:')
+	atc('autows <on|off|toggle>')
+	atc('autows mob <sign> <hp%> <name>')
+	atc('autows hp <hp%>')
+	atc('autows <')
+	atc('autows >')
+	atc('autows set <weaponskill name>')
+	atc('autows autora [<on|off>]')
 end)
 
 windower.register_event('prerender', function()
@@ -100,13 +112,21 @@ windower.register_event('prerender', function()
 				end
 				
 				if player.vitals.tp > 999 then
-					if autowsHpLt then
-						if mob.hpp < autowsMobHp then
-							windower.send_command('input '..autoWsCmd)
-						end
+					if useAutoRA and (araDelayed == 0) then
+						araDelayed = 1
 					else
-						if mob.hpp > autowsMobHp then
-							windower.send_command('input '..autoWsCmd)
+						if autowsHpLt then
+							if mob.hpp < autowsMobHp then
+								windower.send_command('input '..autoWsCmd)
+							end
+						else
+							if mob.hpp > autowsMobHp then
+								windower.send_command('input '..autoWsCmd)
+							end
+						end
+						araDelayed = 0
+						if useAutoRA then
+							windower.send_command('wait 4;ara start')
 						end
 					end
 				end
@@ -119,12 +139,26 @@ end)
 function print_status()
 	local onoff = useAutows and 'On' or 'Off'
 	local ltgt = autowsHpLt and '<' or '>'
-	windower.add_to_chat(0, '[autoWeaponskill: '..onoff..'] {'..autoWsCmd..'} when target HP '..ltgt..' '..autowsMobHp..'%')
+	atc('[autoWeaponskill: '..onoff..'] {'..autoWsCmd..'} when target HP '..ltgt..' '..autowsMobHp..'%')
+end
+
+function atc(c, msg)
+	if (type(c) == 'string') and (msg == nil) then
+		msg = c
+		c = 0
+	end
+	windower.add_to_chat(c, msg)
+end
+
+function atcd(text)
+	if debugging then
+		atc(text)
+	end
 end
 
 -----------------------------------------------------------------------------------------------------------
 --[[
-Copyright © 2014, Lorand
+Copyright © 2014-2015, Lorand
 All rights reserved.
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
     * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.

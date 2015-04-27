@@ -79,6 +79,8 @@ windower.register_event('prerender', function()
 		end
 		
 		local target = windower.ffxi.get_mob_by_target()
+		--local tindex = windower.ffxi.get_player().target_index
+		--target = target or (tindex and windower.ffxi.get_mob_by_index(tindex))
 		if target ~= nil then
 			local target_t = windower.ffxi.get_mob_by_index(target.target_index)
 			if target_t ~= nil then

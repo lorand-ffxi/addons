@@ -6,8 +6,8 @@ _addon.version = '1.2.1'
 local res = require('resources')
 local config = require('config')
 local aliases = config.load('..\\shortcuts\\data\\aliases.xml')
---local spellToSpam = 'Stone'
-local spellsToSpam = {'Fire Threnody','Ice Threnody'}
+local spellToSpam = 'Stone'
+--local spellsToSpam = {'Fire Threnody','Ice Threnody'}
 local lastIndex = 0
 local keepSpamming = false
 local spamDelay = 0.8
@@ -60,8 +60,8 @@ windower.register_event('prerender', function()
 		if (now - lastAttempt) >= spamDelay then
 			local player = windower.ffxi.get_player()
 			local mob = windower.ffxi.get_mob_by_target()
-			--local spell = res.spells:with('en', spellToSpam)
-			local spell = get_spell()
+			local spell = res.spells:with('en', spellToSpam)
+			--local spell = get_spell()
 			
 			if (player ~= nil) and (player.status == 1) and (mob ~= nil) and (spell ~= nil) then
 				if (windower.ffxi.get_spell_recasts()[spell.recast_id] == 0) then
