@@ -1,7 +1,7 @@
 _addon.name = 'autoWeaponskill'
 _addon.author = 'Lorand'
 _addon.commands = {'autows','aws'}
-_addon.version = '0.2'
+_addon.version = '0.2.1'
 
 _libs = _libs or {}
 _libs.luau = _libs.luau or require('luau')
@@ -11,8 +11,8 @@ useAutows = false
 useAutoRA = false
 araDelayed = 0
 autoWsCmd = ''
-autowsHpLt = false
-autowsMobHp = 0
+autowsHpLt = true
+autowsMobHp = 100
 autowsDelay = 0.8
 mobs = {}
 
@@ -112,8 +112,8 @@ windower.register_event('prerender', function()
 				end
 				
 				if player.vitals.tp > 999 then
-					if useAutoRA and (araDelayed == 0) then
-						araDelayed = 1
+					if useAutoRA and (araDelayed < 2) then
+						araDelayed = araDelayed + 1
 					else
 						if autowsHpLt then
 							if mob.hpp < autowsMobHp then
