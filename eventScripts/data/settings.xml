@@ -2,7 +2,7 @@
 <settings>
     <global>
         <addons>
-            <gmmode>true</gmmode>
+            <gmmode>false</gmmode>
             <info>true</info>
             <infoboxes>true</infoboxes>
             <jponry>true</jponry>
