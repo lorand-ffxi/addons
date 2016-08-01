@@ -1,6 +1,7 @@
 *.stackdump
 autolock/*
 AutoRA/*
+AutoWS/data/*
 azureSets/Readme.md
 azureSets/azuresets.lua
 barfiller/*
@@ -21,16 +22,19 @@ discarded code.lua
 DressUp/*
 enemybar/*
 eval/*
+FastCS/*
 findAll/*
 GearSwap/*
 GearSwap.backup/*
 GMmode/bintest.txt
 HealBot*
 healBot_*.7z
+highlight/*
 info*
 instaLS/*
 libs/*
 Logger/*
+macrochanger/*
 OhNoYouDont*
 ohShi/*
 organizer/*

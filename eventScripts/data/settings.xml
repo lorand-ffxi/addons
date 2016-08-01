@@ -9,12 +9,18 @@
         </addons>
         <login_cmds>
             <1>wait 5; input /chatmode party</1>
+            <2>du bmn self always off</2>
         </login_cmds>
         <reactions>
             <3>
                 <invitemenow_please>/pcmd add {sender}</invitemenow_please>
             </3>
         </reactions>
+        <kaley>
+            <login_cmds>
+                <3>du bmn self always on</3>
+            </login_cmds>
+        </kaley>
         <tarulikefish>
             <addons>
                 <autosynth>true</autosynth>
