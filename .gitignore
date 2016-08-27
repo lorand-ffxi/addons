@@ -14,6 +14,7 @@ battlemod/parse_action_packet.lua
 battlemod/README.md
 battlemod/statics.lua
 bluguide/*
+boxdestroyer/*
 cancel/cancel.lua
 chars/*
 ChatLink/*

@@ -1,8 +1,12 @@
 _addon.name = 'AutoWS'
 _addon.author = 'Lorand'
 _addon.commands = {'autows','aws'}
-_addon.version = '0.3.0'
-_addon.lastUpdate = '2016.07.31'
+_addon.version = '0.3.1'
+_addon.lastUpdate = '2016.08.01'
+
+--[[
+    TODO: Add per-mob WS settings
+--]]
 
 require('luau')
 require('lor/lor_utils')
@@ -46,14 +50,14 @@ function save_settings()
     settings[name][job][skill].hps = hps
     settings[name][job][skill].mobs = mobs
     settings[name][job][skill].ws_cmd = ws_cmd
-    _libs.lor.settings.save(settings)
+    settings:save()
 end
 
 
 function load_settings()
     local p = windower.ffxi.get_player()
     if p == nil then return end
-    local s = table.get_nested_value(settings, p.name, p.main_job, weap_type()) or {}
+    local s = settings:get_nested_value(p.name, p.main_job, weap_type()) or {}
     hps = s.hps or defaults.hps
     mobs = s.mobs or {}
     ws_cmd = s.ws_cmd or ''
@@ -62,18 +66,8 @@ end
 
 
 local function parse_hps(arg_str)
-    --local srx = {['<'] = '<%s*(%d+)', ['>'] = '>%s*(%d+)', ['='] = '=%s*(%d+)'}
-    --local vals = map(tonumber, map(arg_str:match, srx))
-    
-    local vals = {
-        ['<'] = arg_str:match('<%s*(%d+)'),
-        ['>'] = arg_str:match('>%s*(%d+)'),
-        ['='] = arg_str:match('=%s*(%d+)')
-    }
-    for k,v in pairs(vals) do
-        vals[k] = tonumber(v)
-    end
-    
+    local srx = {['<'] = '<%s*(%d+)', ['>'] = '>%s*(%d+)', ['='] = '=%s*(%d+)'}
+    local vals = map(tonumber, map(customized(string.match, arg_str), srx))
     if vals['='] ~= nil then
         if sizeof(vals) == 1 then
             vals['<'] = vals['='] + 1
@@ -100,7 +94,7 @@ local function valid_hp_args(args)
         end
     end
     if vals['>'] > vals['<'] then
-        atcf(123, 'Input Error: HP%% < %s must be > HP%% > %s', vals['>'], vals['<'])
+        atcf(123, 'Input Error: HP%% > %s must be < HP%% < %s', vals['>'], vals['<'])
         return false
     end
     return true

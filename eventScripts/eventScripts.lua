@@ -1,8 +1,8 @@
 _addon.name = 'eventScripts'
 _addon.author = 'Lorand'
 _addon.commands = {'eventScripts', 'escripts'}
-_addon.version = '0.3.1'
-_addon.lastUpdate = '2016.06.26'
+_addon.version = '0.3.2'
+_addon.lastUpdate = '2016.08.10'
 
 --[[
     EventScripts is a Windower addon for FFXI that is designed to provide both
@@ -68,7 +68,10 @@ end
 
 windower.register_event('login', 'load', function()
     local player = windower.ffxi.get_player()
-    if player == nil then return end
+    if player == nil then
+        windower.send_command("config FrameRateDivisor 2")
+        return
+    end
     pname = player.name:lower()
 
     if not settings[pname] then
@@ -98,6 +101,7 @@ end)
 
 windower.register_event('logout', function()
     pname = nil
+    windower.send_command("config FrameRateDivisor 2")
 end)
 
 function merge(...)
@@ -111,7 +115,7 @@ end
 
 -----------------------------------------------------------------------------------------------------------
 --[[
-Copyright © 2014-2015, Lorand
+Copyright © 2016, Lorand
 All rights reserved.
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
     * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.

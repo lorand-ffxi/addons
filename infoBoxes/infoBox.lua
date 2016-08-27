@@ -7,7 +7,11 @@ function InfoBox.new(settings, label)
 	self.settings = settings
 	self.text = texts.new(self.settings)
 	self.label = label
-	return setmetatable(self, {__index = InfoBox})
+	return setmetatable(self, {__index = InfoBox, __class = 'InfoBox'})
+end
+
+function InfoBox:getPos()
+    return self.text:pos()
 end
 
 function InfoBox:setPos(posx, posy)
