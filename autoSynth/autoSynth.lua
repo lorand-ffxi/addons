@@ -1,8 +1,8 @@
 _addon.name = 'autoSynth'
 _addon.author = 'Lorand'
 _addon.commands = {'autoSynth', 'as'}
-_addon.version = '1.3.1'
-_addon.lastUpdate = '2016.08.27'
+_addon.version = '1.3.2'
+_addon.lastUpdate = '2016.08.28'
 
 require('luau')
 require('lor/lor_utils')
@@ -149,6 +149,8 @@ windower.register_event('incoming text', function(original)
     elseif original:match('%-+ %u%u Synthesis %(.+%) %-+') then --Block BattleMod synth messages
         return true
     elseif original:match('%-+ Break %(.+%) %-+') then
+        return true
+    elseif original:match('%-+ HQ Tier .! %-+') then
         return true
     end
 end)
