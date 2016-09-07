@@ -1,8 +1,8 @@
 _addon.name = 'camper'
 _addon.author = 'Lorand'
 _addon.commands = {'camper', 'camp'}
-_addon.version = '1.0.0'
-_addon.lastUpdate = '2016.08.28'
+_addon.version = '1.0.1'
+_addon.lastUpdate = '2016.09.07'
 
 require('lor/lor_utils')
 _libs.lor.include_addon_name = true
@@ -64,6 +64,8 @@ windower.register_event('addon command', function(command,...)
         else
             atc(123, 'Invalid arg for untrack')
         end
+    elseif command == 'list' then
+        pprint(comp('mob.id, mob.name for _,mob in windower.ffxi.get_mob_array()'))
 	else
 		atc(0, 'Error: Unable to parse valid command')
 	end
