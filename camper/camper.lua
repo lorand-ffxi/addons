@@ -1,8 +1,8 @@
 _addon.name = 'camper'
 _addon.author = 'Lorand'
 _addon.commands = {'camper', 'camp'}
-_addon.version = '1.0.1'
-_addon.lastUpdate = '2016.09.07'
+_addon.version = '1.1.0'
+_addon.lastUpdate = '2016.10.02'
 
 require('lor/lor_utils')
 _libs.lor.include_addon_name = true
@@ -20,6 +20,9 @@ local boxes = T{}
 local player
 local zone
 local track = T{}
+local find_mobs = S{}
+local last_find_scan = os.time()
+local find_scan_delay = 3
 
 
 local function refresh_vars()
@@ -54,6 +57,10 @@ windower.register_event('addon command', function(command,...)
 		windower.send_command('lua unload %s; lua load %s':format(_addon.name, _addon.name))
 	elseif command == 'unload' then
 		windower.send_command('lua unload %s':format(_addon.name))
+    elseif command == 'find' then
+        find_mob(" ":join(args), true)
+    elseif command == 'stop_find' then
+        find_mob(" ":join(args), false)
     elseif command == 'track' then
         track_mob(args[1])
     elseif command == 'untrack' then
@@ -72,6 +79,28 @@ windower.register_event('addon command', function(command,...)
 end)
 
 
+function find_mob(mob_name, add)
+    local do_add = true
+    if add ~= nil then do_add = add end
+    local mname = mob_name:lower()
+    if find_mobs:contains(mname) then
+        if do_add then
+            atc(123,'Already looking for that mob!')
+        else
+            find_mobs:remove(mname)
+            atcfs('Will stop searching for %s', mname)
+        end
+    else
+        if do_add then
+            find_mobs:add(mname)
+            atcfs('Will now search for %s', mname)
+        else
+            atc(123,'That mob was not being searched for anyways!')
+        end
+    end
+end
+
+
 function untrack_mob(idx)
     if track[idx] ~= nil then
         track:remove(idx)
@@ -85,6 +114,15 @@ function untrack_mob(idx)
             idx = idx + 1
         end
     end
+end
+
+
+local function get_track_ids()
+    local ids = S{}
+    for _,cfg in pairs(track) do
+        ids:add(cfg.id)
+    end
+    return ids
 end
 
 
@@ -134,13 +172,24 @@ end
 windower.register_event('prerender', function()
 	if player then
         local now = os.time()
+        
+        if (#table.keys(find_mobs) > 0) and ((now - last_find_scan) > find_scan_delay) then
+            last_find_scan = now
+            for _,mob in pairs(windower.ffxi.get_mob_array()) do
+                if find_mobs:contains(mob.name:lower()) and (not get_track_ids():contains(mob.id)) then
+                    track_mob(mob.id)
+                end
+            end
+        end
+        
         for tidx, _track in pairs(track) do
             if _track.id ~= nil then
                 local mob_up = false
+                local mob_dist = ''
                 if _track.zone == zone then
                     local tracked = windower.ffxi.get_mob_by_id(_track.id)
                     if tracked ~= nil then
-                        if settings.zones[zone][_track.id].name == nil then
+                        if (settings.zones[zone][_track.id].name == nil) or (settings.zones[zone][_track.id].name == '') then
                             settings.zones[zone][_track.id].name = tracked.name
                             settings:save(true)
                         end
@@ -159,18 +208,19 @@ windower.register_event('prerender', function()
                             settings.zones[zone][_track.id].tod = now
                             settings:save(true)
                         end
+                        mob_dist = ' (%.1f)':format(tracked.distance:sqrt())
                     end
                 end
                 
                 local mob_name = _track.name or '[Unknown]'
                 if mob_up then
-                    boxes[tidx]:text('%s is UP!':format(mob_name))
+                    boxes[tidx]:text('%s is UP! %s':format(mob_name, mob_dist))
                 else
                     local dtime = '--:--:--'
                     if _track.tod ~= nil then
                         dtime = os.date('!%H:%M:%S', now - _track.tod)
                     end
-                    boxes[tidx]:text('%s %s':format(dtime, mob_name))
+                    boxes[tidx]:text('%s %s%s':format(dtime, mob_name, mob_dist))
                 end
                 boxes[tidx]:show()
             end

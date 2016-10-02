@@ -1,8 +1,8 @@
 _addon.name = 'infoBoxes'
 _addon.author = 'Lorand'
 _addon.commands = {'infoBoxes', 'ib'}
-_addon.version = '1.1.1'
-_addon.lastUpdate = '2016.08.23'
+_addon.version = '1.1.3'
+_addon.lastUpdate = '2016.10.01'
 
 require('lor/lor_utils')
 _libs.lor.include_addon_name = true
@@ -16,10 +16,10 @@ local start_time = os.time()
 local strat_charge_time = {[1]=240,[2]=120,[3]=80,[4]=60,[5]=48}
 
 local boxSettings = {}
-boxSettings.stratagems = {pos = {x = -200, y = -20}, flags = {bottom = true, right = true}}
+boxSettings.stratagems = {pos = {x = -300, y = -20}, flags = {bottom = true, right = true}}
 boxSettings.target = {pos = {x = -125, y = 250}, flags = {bottom = false, right = true}}
 boxSettings.targHp = {pos = {x = -125, y = 270}, flags = {bottom = false, right = true}}
-boxSettings.acc = {pos = {x = -125, y = -235}, flags = {bottom = true, right = true}}
+boxSettings.acc = {pos = {x = -125, y = -20}, flags = {bottom = true, right = true}}
 boxSettings.speed = {pos = {x = -60, y = -20}, flags = {bottom = true, right = true}}
 boxSettings.dist = {pos = {x = -178, y = 21}, text = {font='Arial', size = 14}, flags = {right = true}}
 boxSettings.zt = {pos = {x = -100, y = 0}, text = {font='Arial', size = 12}, flags = {right = true}}

@@ -4,9 +4,33 @@ return {
         ['y'] = 0
     },
     ['zones'] = {
+        ['Abyssea - Altepa'] = {
+            [17670575] = {
+                ['name'] = 'Ansherekh',
+                ['tod'] = 1473522717
+            }
+        },
         ['Lower Jeuno'] = {
             [17780898] = {
                 ['name'] = 'Moogle'
+            }
+        },
+        ["Ru'Aun Gardens"] = {
+            [17309774] = {
+                ['name'] = 'Fire Elemental',
+                ['tod'] = 1474819295
+            },
+            [17309776] = {
+                ['name'] = 'Fire Elemental',
+                ['tod'] = 1474819992
+            },
+            [17309780] = {
+                ['name'] = 'Fire Elemental',
+                ['tod'] = 1474820057
+            },
+            [17309783] = {
+                ['name'] = 'Fire Elemental',
+                ['tod'] = 1474820082
             }
         },
         ['Temple of Uggalepih'] = {

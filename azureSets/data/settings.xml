@@ -1,142 +1,51 @@
 <?xml version="1.1" ?>
 <settings>
     <global>
-        <assimilation>5</assimilation>
-        <language>English</language>
+        <setmode>PreserveTraits</setmode>
+        <setspeed>0.65</setspeed>
         <spellsets>
             <aoe>
-                <slot01>quad. continuum</slot01>
-                <slot02>delta thrust</slot02>
-                <slot03>barbed crescent</slot03>
-                <slot04>empty thrash</slot04>
-                <slot05>heavy strike</slot05>
-                <slot06>sudden lunge</slot06>
-                <slot07>benthic typhoon</slot07>
-                <slot08>whirl of rage</slot08>
-                <slot09>subduction</slot09>
-                <slot10>erratic flutter</slot10>
-                <slot11>winds of promy.</slot11>
-                <slot12>magic fruit</slot12>
+                <slot01>dream flower</slot01>
+                <slot02>magic hammer</slot02>
+                <slot03>tenebral crush</slot03>
+                <slot04>subduction</slot04>
+                <slot05>spectral floe</slot05>
+                <slot06>barrier tusk</slot06>
+                <slot07>entomb</slot07>
+                <slot08>delta thrust</slot08>
+                <slot09>glutinous dart</slot09>
+                <slot10>cocoon</slot10>
+                <slot11>occultation</slot11>
+                <slot12>diamondhide</slot12>
                 <slot13>battery charge</slot13>
-                <slot14>cocoon</slot14>
-                <slot15>animating wail</slot15>
-                <slot16>blazing bound</slot16>
-                <slot17>mortal ray</slot17>
+                <slot14>cold wave</slot14>
+                <slot15>barbed crescent</slot15>
+                <slot16>magic fruit</slot16>
+                <slot17>whirl of rage</slot17>
                 <slot18>fantod</slot18>
             </aoe>
-            <base>
-                <slot01>actinic burst</slot01>
-                <slot02>winds of promy.</slot02>
-                <slot03>dream flower</slot03>
-                <slot04>yawn</slot04>
-                <slot05>battery charge</slot05>
-                <slot06>animating wail</slot06>
-                <slot07>sub-zero smash</slot07>
-                <slot08>auroral drape</slot08>
-                <slot09>cocoon</slot09>
-                <slot10>magic fruit</slot10>
-                <slot11>whirl of rage</slot11>
-                <slot12>frypan</slot12>
-            </base>
-            <basedd>
-                <slot01>actinic burst</slot01>
-                <slot02>winds of promy.</slot02>
-                <slot03>dream flower</slot03>
-                <slot04>yawn</slot04>
-                <slot05>battery charge</slot05>
-                <slot06>animating wail</slot06>
-                <slot07>sub-zero smash</slot07>
-                <slot08>auroral drape</slot08>
-                <slot09>cocoon</slot09>
-                <slot10>magic fruit</slot10>
-                <slot11>whirl of rage</slot11>
-                <slot12>frypan</slot12>
-                <slot13>blazing bound</slot13>
-                <slot14>quad. continuum</slot14>
-                <slot15>delta thrust</slot15>
-                <slot16>head butt</slot16>
-                <slot17>empty thrash</slot17>
-                <slot18>acrid stream</slot18>
-                <slot19>asuran claws</slot19>
-            </basedd>
             <ddspec>
-                <slot01>quad. continuum</slot01>
-                <slot02>delta thrust</slot02>
-                <slot03>barbed crescent</slot03>
-                <slot04>empty thrash</slot04>
-                <slot05>heavy strike</slot05>
-                <slot06>thrashing assault</slot06>
-                <slot07>sudden lunge</slot07>
-                <slot08>nat. meditation</slot08>
-                <slot09>erratic flutter</slot09>
-                <slot10>battery charge</slot10>
-                <slot11>winds of promy.</slot11>
-                <slot12>animating wail</slot12>
-                <slot13>blazing bound</slot13>
-                <slot14>mortal ray</slot14>
-                <slot15>fantod</slot15>
+                <slot01>winds of promy.</slot01>
+                <slot02>heavy strike</slot02>
+                <slot03>erratic flutter</slot03>
+                <slot04>actinic burst</slot04>
+                <slot05>nat. meditation</slot05>
+                <slot06>sudden lunge</slot06>
+                <slot07>thrashing assault</slot07>
+                <slot08>delta thrust</slot08>
+                <slot09>molting plumage</slot09>
+                <slot10>quad. continuum</slot10>
+                <slot11>fantod</slot11>
+                <slot12>empty thrash</slot12>
+                <slot13>battery charge</slot13>
+                <slot14>blazing bound</slot14>
+                <slot15>barbed crescent</slot15>
+                <slot16>magic fruit</slot16>
+                <slot17>whirl of rage</slot17>
             </ddspec>
             <default>
 
             </default>
-            <failtest>
-                <slot01>magic fruit</slot01>
-                <slot02>battery charge</slot02>
-                <slot03>occultation</slot03>
-                <slot04>amorphic spikes</slot04>
-                <slot05>head butt</slot05>
-                <slot06>actinic burst</slot06>
-                <slot07>winds of promy.</slot07>
-                <slot08>empty thrash</slot08>
-                <slot09>heavy strike</slot09>
-                <slot10>acrid stream</slot10>
-                <slot11>demoralizing roar</slot11>
-                <slot12>quad. continuum</slot12>
-                <slot13>delta thrust</slot13>
-                <slot14>barbed crescent</slot14>
-                <slot15>thermal pulse</slot15>
-                <slot16>auroral drape</slot16>
-                <slot17>dark orb</slot17>
-                <slot18>magic barrier</slot18>
-            </failtest>
-            <newbase>
-                <slot01>thrashing assault</slot01>
-                <slot02>heavy strike</slot02>
-                <slot03>empty thrash</slot03>
-                <slot04>sudden lunge</slot04>
-                <slot05>fantod</slot05>
-                <slot06>erratic flutter</slot06>
-                <slot07>barbed crescent</slot07>
-                <slot08>mortal ray</slot08>
-                <slot09>delta thrust</slot09>
-                <slot10>quad. continuum</slot10>
-                <slot11>blazing bound</slot11>
-                <slot12>animating wail</slot12>
-                <slot13>winds of promy.</slot13>
-                <slot14>actinic burst</slot14>
-                <slot15>whirl of rage</slot15>
-            </newbase>
-            <oldset>
-                <slot01>actinic burst</slot01>
-                <slot02>winds of promy.</slot02>
-                <slot03>dream flower</slot03>
-                <slot04>yawn</slot04>
-                <slot05>battery charge</slot05>
-                <slot06>animating wail</slot06>
-                <slot07>sub-zero smash</slot07>
-                <slot08>auroral drape</slot08>
-                <slot09>cocoon</slot09>
-                <slot10>magic fruit</slot10>
-                <slot11>whirl of rage</slot11>
-                <slot12>frypan</slot12>
-                <slot13>battle dance</slot13>
-                <slot14>claw cyclone</slot14>
-                <slot15>grand slam</slot15>
-                <slot16>benthic typhoon</slot16>
-                <slot17>blastbomb</slot17>
-                <slot18>ice break</slot18>
-                <slot19>mysterious light</slot19>
-            </oldset>
             <vw1>
                 <slot01>Firespit</slot01>
                 <slot02>Heat Breath</slot02>
@@ -173,26 +82,6 @@
                 <slot14>Eyes On Me</slot14>
                 <slot15>Sandspray</slot15>
             </vw2>
-            <warsub>
-                <slot01>Magic Fruit</slot01>
-                <slot02>Battery Charge</slot02>
-                <slot03>Occultation</slot03>
-                <slot04>Amorphic Spikes</slot04>
-                <slot05>Head Butt</slot05>
-                <slot06>Actinic Burst</slot06>
-                <slot07>Winds of Promy.</slot07>
-                <slot08>Empty Thrash</slot08>
-                <slot09>Heavy Strike</slot09>
-                <slot10>Acrid Stream</slot10>
-                <slot11>Demoralizing Roar</slot11>
-                <slot12>Quad. Continuum</slot12>
-                <slot13>Delta Thrust</slot13>
-                <slot14>Barbed Crescent</slot14>
-                <slot15>Blazing Bound</slot15>
-                <slot16>Animating Wail</slot16>
-                <slot17>Mortal Ray</slot17>
-                <slot18>Dream Flower</slot18>
-            </warsub>
         </spellsets>
     </global>
 </settings>

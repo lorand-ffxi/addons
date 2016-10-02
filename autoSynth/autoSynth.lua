@@ -1,8 +1,8 @@
 _addon.name = 'autoSynth'
 _addon.author = 'Lorand'
 _addon.commands = {'autoSynth', 'as'}
-_addon.version = '1.3.2'
-_addon.lastUpdate = '2016.08.28'
+_addon.version = '1.3.3'
+_addon.lastUpdate = '2016.09.25'
 
 require('luau')
 require('lor/lor_utils')
@@ -21,8 +21,8 @@ compass = {n = -math.pi/2, s = math.pi/2, e = 0, w = math.pi, nw = -math.pi*3/4,
 safe = {dark = 'n', light = 'ne', ice = 'e', wind = 'se', earth = 's', lightning = 'sw', water = 'w', fire = 'nw'}
 risk = {dark = 'ne', light = 'n', ice = 'nw', wind = 'e', earth = 'se', lightning = 's', water = 'sw', fire = 'w'}
 
-overall = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0}
-session = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0}
+overall = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
+session = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
 
 qual_count_keys = {[1]='breaks',[2]='hq'}
 
@@ -37,9 +37,17 @@ function print_stats(stats, header)
     else
         atc('No skillups.')
     end
-    
+        
     if stats.synths > 0 then
         atcfs('Total: %d synths | HQ: %d (%.2f%%) | Break: %d (%.2f%%)', stats.synths, stats.hq, stats.hq/stats.synths*100, stats.breaks, stats.breaks/stats.synths*100)
+        if stats.hq > 0 then
+            local hq_msgs = {}
+            for tier, count in ipairs(stats.hqT) do
+                local tpct, hpct = count/stats.synths*100, count/stats.hq*100
+                hq_msgs[#hq_msgs+1] = 'HQ%s: %d (%.2f%% overall / %.2f%% hq)':format(tier, count, tpct, hpct)
+            end
+            atcfs(' | ':join(hq_msgs))
+        end
     else
         atc('No synths performed.')
     end
@@ -64,7 +72,7 @@ windower.register_event('addon command', function (command,...)
         windower.send_command('lua unload autoSynth')
     elseif S{'craft','start','on'}:contains(command) then
         synthesisPossible = true
-        session = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0}
+        session = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
         printStatus()
         trySynth()
     elseif S{'stop','end','off'}:contains(command) then
@@ -194,6 +202,8 @@ windower.register_event('incoming chunk', function(id,data)
             local result = p:byte(2)
             if result > 0 then
                 atcfs(8, ' %s HQ Tier %s!', rarr, result)
+                overall.hqT[result] = overall.hqT[result] + 1
+                session.hqT[result] = session.hqT[result] + 1
             end
         end
         if _debug then

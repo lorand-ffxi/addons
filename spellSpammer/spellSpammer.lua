@@ -6,11 +6,15 @@ _addon.version = '1.2.1'
 local res = require('resources')
 local config = require('config')
 local aliases = config.load('..\\shortcuts\\data\\aliases.xml')
-local spellToSpam = 'Stone'
---local spellsToSpam = {'Fire Threnody','Ice Threnody'}
+--local spellToSpam = 'Stone'
+local spellsToSpam = {'Indi-Poison','Indi-Voidance','Indi-Precision'}
 local lastIndex = 0
 local keepSpamming = false
 local spamDelay = 0.8
+local spammer = {name='',actionStart=0,actionEnd=0}
+
+local settings = {actionDelay = 2.75}
+
 
 windower.register_event('addon command', function (command,...)
     command = command and command:lower() or 'help'
@@ -60,18 +64,21 @@ windower.register_event('prerender', function()
 		if (now - lastAttempt) >= spamDelay then
 			local player = windower.ffxi.get_player()
 			local mob = windower.ffxi.get_mob_by_target()
-			local spell = res.spells:with('en', spellToSpam)
-			--local spell = get_spell()
+			--local spell = res.spells:with('en', spellToSpam)
+			local spell = get_spell()
 			
-			if (player ~= nil) and (player.status == 1) and (mob ~= nil) and (spell ~= nil) then
+			if (player ~= nil) and (player.status == 0) and (mob ~= nil) and (spell ~= nil) then
+                spammer.name = player.name
 				if (windower.ffxi.get_spell_recasts()[spell.recast_id] == 0) then
 					if (player.vitals.mp >= spell.mp_cost) and (mob.hpp > 0) then
 						windower.send_command('input '..spell.prefix..' "'..spell.en..'" <t>')
-						local add_delay = 1.6
-						if (spell.recast >= 4) then
-							add_delay = 0.2
-						end
-						spamDelay = spell.recast + add_delay + (math.random(2, 9)/10)
+						--local add_delay = 1.8
+                        local add_delay = spell.cast_time + 2.5
+						--if (spell.recast >= 4) then
+						--	add_delay = 0.2
+						--end
+						--spamDelay = spell.recast + add_delay + (math.random(1, 3)/10)
+                        spamDelay = add_delay + (math.random(2, 9)/10)
 					end
 				end
 			end
@@ -79,6 +86,27 @@ windower.register_event('prerender', function()
 		end
 	end
 end)
+
+--[[
+windower.register_event('prerender', function()
+    local now = os.clock()
+    local acting = isPerformingAction(moving)
+    local player = windower.ffxi.get_player()
+    spammer.name = player and player.name or 'Player'
+    if (player ~= nil) and S{0,1}:contains(player.status) then    --0/1 = idle/engaged
+        
+        
+        if keepSpamming and not acting then
+            if (now - spammer.lastAction) > settings.actionDelay then
+                
+                spammer.lastAction = now     --Refresh stored action check time
+            end
+        end
+        
+    end
+end)
+--]]
+
 
 function sizeof(tbl)
 	local c = 0
@@ -99,7 +127,9 @@ end
 
 function print_status()
 	local onoff = keepSpamming and 'On' or 'Off'
-	windower.add_to_chat(0, '[spellSpammer: '..onoff..'] {'..spellToSpam..'}')
+    --local spellToSpam = get_spell()
+	--windower.add_to_chat(0, '[spellSpammer: '..onoff..'] {'..spellToSpam..'}')
+    windower.add_to_chat(0, '[spellSpammer: '..onoff..']')
 end
 
 function atc(c, msg)
@@ -178,9 +208,141 @@ function toRomanNumeral(val)
 	return dec2roman[val]
 end
 
+
+
+function isPerformingAction(moving)
+    if (os.clock() - spammer.actionStart) > 8 then
+        --Precaution in case an action completion isn't registered for a long time
+        spammer.actionEnd = os.clock()
+    end
+    
+    local acting = (spammer.actionEnd < spammer.actionStart)
+    
+    if (lastActingState ~= acting) then --If the current acting state is different from the last one
+        if lastActingState then         --If an action was being performed
+            settings.actionDelay = 2.75         --Set a longer delay
+            spammer.lastAction = os.clock()      --The delay will be from this time
+        else                    --If no action was being performed
+            settings.actionDelay = 0.1          --Set a short delay
+        end
+        lastActingState = acting        --Refresh the last acting state
+    end
+    
+    return acting
+end
+
+
+--[[
+	Analyze the data contained in incoming packets for useful info.
+	@param id packet ID
+	@param data raw packet contents
+--]]
+function handle_incoming_chunk(id, data)
+	if S{0x28,0x29}:contains(id) then	--Action / Action Message
+		local ai = get_action_info(id, data)
+		local actor = windower.ffxi.get_mob_by_id(ai.actor_id)
+		if (actor == nil) then return end
+		if id == 0x28 then
+			for _,targ in pairs(ai.targets) do
+                local target = windower.ffxi.get_mob_by_id(targ.id)
+                if (target == nil) then return end
+                for _,tact in pairs(targ.actions) do
+                    if spammer.name == actor.name then
+                        if messages_initiating:contains(tact.message_id) then
+                            spammer.actionStart = os.clock()
+                        elseif messages_completing:contains(tact.message_id) then
+                            spammer.actionEnd = os.clock()
+                        end
+                    end
+                end
+            end
+		elseif id == 0x29 then
+			if spammer.name == actor.name then
+                if messages_initiating:contains(ai.message_id) then
+                    spammer.actionStart = os.clock()
+                elseif messages_completing:contains(ai.message_id) then
+                    spammer.actionEnd = os.clock()
+                end
+            end
+		end
+	end
+end
+
+
+--[[
+	Parse the given packet and construct a table to make its contents useful.
+	Based on the 'incoming chunk' function in the Battlemod addon (thanks to Byrth / SnickySnacks)
+	@param id packet ID
+	@param data raw packet contents
+	@return a table representing the given packet's data
+--]]
+function get_action_info(id, data)
+    local pref = data:sub(1,4)
+    local data = data:sub(5)
+    if id == 0x28 then			-------------- ACTION PACKET ---------------
+        local act = {
+            actor_id = get_bit_packed(data,8,40),
+            target_count = get_bit_packed(data,40,50),
+            targets = {}
+        }
+        local offset = 118
+        for i = 1, act.target_count do
+            act.targets[i] = {
+                id = get_bit_packed(data,offset,offset+32),
+                action_count = get_bit_packed(data,offset+32,offset+36),
+                actions = {}
+            }
+            offset = offset + 36
+            for n = 1,act.targets[i].action_count do
+                act.targets[i].actions[n] = {
+                    message_id = get_bit_packed(data,offset+44,offset+54),
+                    has_add_efct = get_bit_packed(data,offset+85,offset+86)
+                }
+                offset = offset + 86
+                if act.targets[i].actions[n].has_add_efct == 1 then
+                    offset = offset + 37
+                end
+                act.targets[i].actions[n].has_spike_efct = get_bit_packed(data,offset,offset+1)
+                offset = offset + 1
+                if act.targets[i].actions[n].has_spike_efct == 1 then
+                    offset = offset + 34
+                end
+            end
+        end
+        return act
+    elseif id == 0x29 then		----------- ACTION MESSAGE ------------
+		local am = {}
+		am.actor_id   = get_bit_packed(data,0,32)
+		am.target_id  = get_bit_packed(data,32,64)
+		am.message_id = get_bit_packed(data,160,175)	-- Cut off the most significant bit, hopefully
+		return am
+	end
+end
+
+function get_bit_packed(dat_string,start,stop)
+	--Copied from Battlemod; thanks to Byrth / SnickySnacks
+	local newval = 0   
+	local c_count = math.ceil(stop/8)
+	while c_count >= math.ceil((start+1)/8) do
+		local cur_val = dat_string:byte(c_count)
+		local scal = 256
+		if c_count == math.ceil(stop/8) then
+			cur_val = cur_val%(2^((stop-1)%8+1))
+		end
+		if c_count == math.ceil((start+1)/8) then
+			cur_val = math.floor(cur_val/(2^(start%8)))
+			scal = 2^(8-start%8)
+		end
+		newval = newval*scal + cur_val
+		c_count = c_count - 1
+	end
+	return newval
+end
+
+
 -----------------------------------------------------------------------------------------------------------
 --[[
-Copyright © 2015, Lorand
+Copyright © 2016, Lorand
 All rights reserved.
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
     * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
