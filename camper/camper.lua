@@ -2,7 +2,7 @@ _addon.name = 'camper'
 _addon.author = 'Lorand'
 _addon.commands = {'camper', 'camp'}
 _addon.version = '1.1.0'
-_addon.lastUpdate = '2016.10.02'
+_addon.lastUpdate = '2016.10.02.01'
 
 require('lor/lor_utils')
 _libs.lor.include_addon_name = true
@@ -22,7 +22,7 @@ local zone
 local track = T{}
 local find_mobs = S{}
 local last_find_scan = os.time()
-local find_scan_delay = 3
+local find_scan_delay = 1
 
 
 local function refresh_vars()

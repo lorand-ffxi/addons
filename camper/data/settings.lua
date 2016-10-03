@@ -60,6 +60,11 @@ return {
                 ['name'] = 'Ellyllon',
                 ['tod'] = 1473007536
             }
+        },
+        ['Wajaom Woodlands'] = {
+            [16986600] = {
+                ['name'] = 'Warhorse Hoofprint'
+            }
         }
     }
 }
