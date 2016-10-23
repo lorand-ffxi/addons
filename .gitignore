@@ -4,6 +4,8 @@ AutoRA/*
 AutoWS/data/*
 azureSets/Readme.md
 azureSets/azuresets.lua
+azureSets/data/*7z
+azureSets/data/*old.xml
 barfiller/*
 battlemod/battlemod.lua
 battlemod/data/filters/filters - Copy (2).xml
@@ -49,6 +51,7 @@ porter/*
 Pouches/*
 reive/*
 scoreboard/*
+ScriptedExtender
 send/*
 shortcuts/data/aliases_default.xml
 shortcuts/helper_functions.lua

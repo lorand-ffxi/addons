@@ -22,15 +22,15 @@ return {
             },
             [17309776] = {
                 ['name'] = 'Fire Elemental',
-                ['tod'] = 1474819992
+                ['tod'] = 1475536642
             },
             [17309780] = {
                 ['name'] = 'Fire Elemental',
-                ['tod'] = 1474820057
+                ['tod'] = 1475536626
             },
             [17309783] = {
                 ['name'] = 'Fire Elemental',
-                ['tod'] = 1474820082
+                ['tod'] = 1475536599
             }
         },
         ['Temple of Uggalepih'] = {
@@ -59,6 +59,24 @@ return {
             [17403939] = {
                 ['name'] = 'Ellyllon',
                 ['tod'] = 1473007536
+            }
+        },
+        ["The Shrine of Ru'Avitau"] = {
+            [17506361] = {
+                ['name'] = 'Fire Elemental',
+                ['tod'] = 1475539688
+            },
+            [17506362] = {
+                ['name'] = 'Fire Elemental',
+                ['tod'] = 1475539718
+            },
+            [17506374] = {
+                ['name'] = 'Fire Elemental',
+                ['tod'] = 1475539842
+            },
+            [17506375] = {
+                ['name'] = 'Fire Elemental',
+                ['tod'] = 1475539901
             }
         },
         ['Wajaom Woodlands'] = {

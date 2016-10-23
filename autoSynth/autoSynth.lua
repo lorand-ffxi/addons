@@ -1,8 +1,8 @@
 _addon.name = 'autoSynth'
 _addon.author = 'Lorand'
 _addon.commands = {'autoSynth', 'as'}
-_addon.version = '1.3.3'
-_addon.lastUpdate = '2016.09.25'
+_addon.version = '1.4.0'
+_addon.lastUpdate = '2016.10.09'
 
 require('luau')
 require('lor/lor_utils')
@@ -23,6 +23,8 @@ risk = {dark = 'ne', light = 'n', ice = 'nw', wind = 'e', earth = 'se', lightnin
 
 overall = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
 session = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
+req_food = false
+req_supp = false
 
 qual_count_keys = {[1]='breaks',[2]='hq'}
 
@@ -66,10 +68,8 @@ windower.register_event('addon command', function (command,...)
     command = command and command:lower() or 'help'
     local args = T{...}:map(string.lower)
     
-    if command == 'reload' then
-        windower.send_command('lua reload autoSynth')
-    elseif command == 'unload' then
-        windower.send_command('lua unload autoSynth')
+    if S{'reload','unload'}:contains(command) then
+        windower.send_command('lua %s %s':format(command, _addon.name))
     elseif S{'craft','start','on'}:contains(command) then
         synthesisPossible = true
         session = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
@@ -78,6 +78,30 @@ windower.register_event('addon command', function (command,...)
     elseif S{'stop','end','off'}:contains(command) then
         synthesisPossible = false
         printStatus()
+    elseif S{'require','req'}:contains(command) then
+        for _,arg in pairs(args) do
+            if S{'food'}:contains(arg) then
+                req_food = true
+                atc('Will stop crafting when food wears off.')
+            elseif S{'support','supp','imagery'}:contains(arg) then
+                req_supp = true
+                atc('Will stop crafting when crafting imagery wears off.')
+            else
+                atcfs('Unrecognized argument for require: %s', arg)
+            end
+        end
+    elseif S{'cancel','no','noreq','norequire','cancelreq'}:contains(command) then
+        for _,arg in pairs(args) do
+            if S{'food'}:contains(arg) then
+                req_food = false
+                atc('Will continue crafting if food wears off.')
+            elseif S{'support','supp','imagery'}:contains(arg) then
+                req_supp = false
+                atc('Will continue crafting if crafting imagery wears off.')
+            else
+                atcfs('Unrecognized argument for cancel requirement: %s', arg)
+            end
+        end
     elseif command == 'debug' then
         _debug = not _debug
         atcfs('Debug mode: %s', _debug)
@@ -126,12 +150,37 @@ function printStatus()
 end
 
 function trySynth()
+    check_buffs()
     if synthesisPossible then
         windower.send_command('input /lastsynth')
     end
 end
+    
+function check_buffs()
+    local active_buffs = S(windower.ffxi.get_player().buffs)
+    
+    if req_food and (not active_buffs[251]) then
+        synthesisPossible = false
+        atc(123, 'Food wore off - cancelling synthesis')
+    end
+    
+    if req_supp then
+        local has_supp = false
+        for i = 235, 243 do
+            if active_buffs[i] then
+                has_supp = true
+                break
+            end
+        end
+        if not has_supp then
+            synthesisPossible = false
+            atc(123, 'Synthesis imagery wore off - cancelling synthesis')
+        end
+    end
+end
 
 function delayedAttempt()
+    check_buffs()
     if synthesisPossible then
         local waitTime = baseDelay + math.random(0, 2)
         if _debug then
