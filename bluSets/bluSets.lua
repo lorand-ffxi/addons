@@ -1,8 +1,8 @@
 _addon.name = 'BLUSets'
-_addon.version = '1.3'
+_addon.version = '1.3.1'
 _addon.author = 'Lorand / Nitrous (Shiva)'
 _addon.commands = {'blusets','bs','blu'}
-_addon.lastUpdate = '2016.10.23'
+_addon.lastUpdate = '2016.10.23.1'
 
 
 require('lor/lor_utils')
@@ -52,6 +52,9 @@ windower.register_event('addon command', function(...)
                 local spell = args:sconcat()
                 set_single_spell(spell:lower(),slot)
             end
+        elseif cmd == 'convert' then
+            _libs.lor.settings.convert_config('data/settings.xml', 'data/settings.lua')
+            atc('For changes to take effect, please //blusets reload ')
         elseif cmd == 'save' then
             if args[1] ~= nil then
                 save_set(args[1])
