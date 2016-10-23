@@ -2,11 +2,11 @@ _addon.name = 'BLUSets'
 _addon.version = '1.3.1'
 _addon.author = 'Lorand / Nitrous (Shiva)'
 _addon.commands = {'blusets','bs','blu'}
-_addon.lastUpdate = '2016.10.23.1'
+_addon.lastUpdate = '2016.10.23.2'
 
 
 require('lor/lor_utils')
-_libs.lor.req('settings', 'chat', 'tables')
+_libs.lor.req('chat', 'tables', {n='settings',v='2016.10.23.1'})
 _libs.req('tables', 'strings', 'logger', 'sets')
 local res = require('resources')
 local chat = require('chat')
