@@ -2,7 +2,7 @@ _addon.name = 'BLUSets'
 _addon.version = '1.3.1'
 _addon.author = 'Lorand / Nitrous (Shiva)'
 _addon.commands = {'blusets','bs','blu'}
-_addon.lastUpdate = '2016.11.05.0'
+_addon.lastUpdate = '2016.11.05.1'
 
 
 require('lor/lor_utils')
@@ -119,19 +119,20 @@ windower.register_event('addon command', function(...)
                 atc(123, 'Error: list requires an additional argument (sets or spells)')
             end
         elseif cmd == 'help' then
-            local helptext = [[BLUSets - Command List:')
-            1. removeall - Unsets all spells.
-            2. load <setname> [ClearFirst|PreserveTraits] -- Set (setname)'s spells,
+            local helptext = [[BLUSets - Command List:
+            removeall - Unsets all spells.
+            convert -- Converts settings.xml to settings.lua
+            load <setname> [ClearFirst|PreserveTraits] -- Set (setname)'s spells,
                              optional parameter: ClearFirst or PreserveTraits: overrides
                              setting to clear spells first or remove individually,
                              preserving traits where possible. Default: use settings or
                              preservetraits if settings not configured.
-            3. add <slot> <spell> -- Set (spell) to slot (slot (number)).
-            4. save <setname> -- Saves current spellset as (setname).
-            5. currentlist -- Lists currently set spells.
-            6. setlist -- Lists all spellsets.
-            7. spelllist <setname> -- List spells in (setname)
-            8. help --Shows this menu.]]
+            add <slot> <spell> -- Set (spell) to slot (slot (number)).
+            save <setname> -- Saves current spellset as (setname).
+            current -- Lists currently set spells.
+            list {sets,<setname>} -- Lists available spell sets, or spells in the given set
+            diff <setname1> [<setname2>] -- Compares setname1 to setname2 if provided, or your currently equipped spells
+            help -- Shows this menu.]]
             for _, line in ipairs(helptext:split('\n')) do
                 atcfs(207, '%s%s', line, chat.controls.reset)
             end
