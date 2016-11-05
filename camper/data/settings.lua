@@ -10,6 +10,22 @@ return {
                 ['tod'] = 1473522717
             }
         },
+        ['Abyssea - Tahrongi'] = {
+            [16961935] = {
+                ['name'] = 'Minhocao',
+                ['tod'] = 1478135915
+            },
+            [16961936] = {
+                ['name'] = 'Adze',
+                ['tod'] = 1478136072
+            }
+        },
+        ['Abyssea - Uleguerand'] = {
+            [17813936] = {
+                ['name'] = 'Sisyphus',
+                ['tod'] = 1478315210
+            }
+        },
         ['Lower Jeuno'] = {
             [17780898] = {
                 ['name'] = 'Moogle'

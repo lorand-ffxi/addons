@@ -2,7 +2,7 @@ _addon.name = 'BLUSets'
 _addon.version = '1.3.1'
 _addon.author = 'Lorand / Nitrous (Shiva)'
 _addon.commands = {'blusets','bs','blu'}
-_addon.lastUpdate = '2016.10.23.2'
+_addon.lastUpdate = '2016.11.05.0'
 
 
 require('lor/lor_utils')
@@ -59,26 +59,54 @@ windower.register_event('addon command', function(...)
             if args[1] ~= nil then
                 save_set(args[1])
             end
-        elseif cmd == 'load' then
-            if last_set_name ~= nil then
-                if get_spellset_content(last_set_name) ~= get_current_spellset() then
-                    local new_set_name = '%s_%s':format(last_set_name, os.date('%Y.%m.%d_%H.%M.%S'))
-                    save_set(new_set_name)
+        elseif cmd == 'diff' then
+            if args[1] == nil then
+                atc('Usage: //blusets diff set_name_1 [set_name_2]')
+                return
+            end
+            local name1 = args[1]
+            local set1 = settings.spellsets[args[1]]
+            if set1 == nil then
+                atcfs(123, 'Invalid set name: %s', args[1])
+                return
+            end
+            local name2 = args[2] or get_current_set_name() or '[current]'
+            local set2 = settings.spellsets[args[2]] or get_current_spellset()
+            set1 = S(table.values(set1))
+            set2 = S(table.values(set2))
+            
+            if set1 == set2 then
+                atcfs('%s is identical to %s', name1, name2)
+            else
+                local set1_only = set1:diff(set2)
+                if table.size(set1_only) > 0 then
+                    atcfs('Only in %s: %s', name1, ', ':join(set1_only))
                 end
+                local set2_only = set2:diff(set1)
+                if table.size(set2_only) > 0 then
+                    atcfs('Only in %s: %s', name2, ', ':join(set2_only))
+                end
+                local in_both = set1:intersection(set2)
+                if table.size(in_both) > 0 then
+                    atcfs('In both %s and %s: %s', name1, name2, ', ':join(in_both))
+                end
+            end
+            --atcfs('set1: %s', ', ':join(set1))
+            --atcfs('set2: %s', ', ':join(set2))
+        elseif cmd == 'load' then
+            local set_name = get_current_set_name()
+            if set_name == nil then
+                last_set_name = last_set_name or 'unknown'
+                local new_set_name = '%s_%s':format(last_set_name, os.date('%Y.%m.%d_%H.%M.%S'))
+                save_set(new_set_name)
             end
             if args[1] ~= nil then
                 set_spells(args[1], args[2] or settings.setmode)
                 last_set_name = args[1]
             end
         elseif cmd == 'current' then
-            local current_set = get_current_spellset()
-            local current_spells = S(table.values(current_set))
-            for set_name, spell_set in pairs(settings.spellsets) do
-                if table.equals(S(table.values(spell_set)), current_spells) then
-                    atcfs('Current spell set: %s', set_name)
-                    break
-                end
-            end
+            local set_name = get_current_set_name() or '[unknown]'
+            atcfs('Current spell set: %s', set_name)
             current_set:print()
         elseif cmd == 'list' then
             if args[1] ~= nil then
@@ -110,6 +138,18 @@ windower.register_event('addon command', function(...)
         end
     end
 end)
+
+
+function get_current_set_name()
+    local current_set = get_current_spellset()
+    local current_spells = S(table.values(current_set))
+    for set_name, spell_set in pairs(settings.spellsets) do
+        if table.equals(S(table.values(spell_set)), current_spells) then
+            return set_name
+        end
+    end
+    return nil
+end
 
 
 function initialize()

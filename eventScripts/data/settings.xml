@@ -6,6 +6,7 @@
             <info>true</info>
             <infoboxes>true</infoboxes>
             <jponry>true</jponry>
+            <blusets>true</blusets>
         </addons>
         <login_cmds>
             <1>wait 5; input /chatmode party</1>
