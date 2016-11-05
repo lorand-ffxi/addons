@@ -2,7 +2,7 @@ _addon.name = 'BLUSets'
 _addon.version = '1.3.1'
 _addon.author = 'Lorand / Nitrous (Shiva)'
 _addon.commands = {'blusets','bs','blu'}
-_addon.lastUpdate = '2016.11.05.2'
+_addon.lastUpdate = '2016.11.05.3'
 
 
 require('lor/lor_utils')
@@ -14,7 +14,8 @@ local chat = require('chat')
 local spell_lists = {
     useless = {"Pollen","Footkick","Sprout Smack","Wild Oats","Power Attack","Metallic Body","Queasyshroom","Battle Dance","Feather Storm","Head Butt","Healing Breeze","Helldive","Blastbomb","Bludgeon","Blood Drain","Claw Cyclone","Poison Breath","Soporific","Screwdriver","Bomb Toss","Grand Slam","Wild Carrotchan","Caotic Eye","Smite of Rage","Digest","Pinecone Bomb","Jet Stream","Uppercut","Terror Touch","MP Drainkiss","Venom Shell","Stinking Gas","Mandibular Bite","Awful Eye","Blood Saber","Refueling","Self-Destruct","Feather Barrier","Flying Hip Press","Spiral Spin","Death Scissors","Seedspray","1000 Needles","Body Slam","Hydro Shot","Frypan","Spinal Cleave","Voracious Trunk","Enervation","Warm-Up","Hysteric Barrage","Cannonball","Sub-zero Smash","Ram Charge","Mind Blast","Plasma Charge","Vertical Cleave","Plenilune Embrace","Demoralizing Roar","Final Sting","Osmosis","Vapor Spray","Thunder Breath","Atra. Libation"},
     need = {"Cocoon","Sickle Slash","Blank Gaze","Tail Slap","Magic Fruit","Acrid Stream","Yawn","Saline Coat","Magic Hammer","Regeneration","Fantod","Battery Charge","Empty Thrash","Magic Barrier","Delta Thrust","Whirl of Rage","Dream Flower","Heavy Strike","Occultation","Barbed Crescent","Winds of Promy.","Thrashing Assault","Barrier Tusk","Diffusion Ray","White Wind","Molting Plumage","Sudden Lunge","Nat. Meditation","Glutinous Dart","Paralyzing Triad","Retinal Glare","Carcharian Verve","Erratic Flutter","Subduction","Sinker Drill","Sweeping Gouge","Searing Tempest","Blinding Fulgor","Spectral Floe","Scouring Spate","Anvil Lightning","Silent Storm","Entomb","Tenebral Crush","Mighty Guard"},
-    nice = {"Animating Wail","Quad. Continuum","Blazing Bound","Mortal Ray","Sheep Song","Battle Dance","MP Drainkiss","Sound Blast","Frightful Roar","Uppercut","Memento Mori","Frenetic Rip","Infrasonics","Spinal Cleave","Zephyr Mantle","Disseverment","Diamondhide","Goblin Rush","Amplification","Vanity Dive","Temporal Shift","Evryone. Grudge","Actinic Burst","Quadrastrike","Benthic Typhoon","Thermal Pulse","Palling Salvo","Reaving Wind","Thunderbolt","Embalming Earth","Restoral","Saurian Slide","Plenilune Embrace","Amorphic Spikes","Water Bomb","Regurgitation","Charged Whisker","Rail Cannon"}
+    nice = {"Animating Wail","Quad. Continuum","Blazing Bound","Mortal Ray","Sheep Song","Battle Dance","MP Drainkiss","Sound Blast","Frightful Roar","Uppercut","Memento Mori","Frenetic Rip","Infrasonics","Spinal Cleave","Zephyr Mantle","Disseverment","Diamondhide","Goblin Rush","Amplification","Vanity Dive","Temporal Shift","Evryone. Grudge","Actinic Burst","Quadrastrike","Benthic Typhoon","Thermal Pulse","Palling Salvo","Reaving Wind","Thunderbolt","Embalming Earth","Restoral","Saurian Slide","Plenilune Embrace","Amorphic Spikes","Water Bomb","Regurgitation","Charged Whisker","Rail Cannon"},
+    vw = {"Firespit","Heat Breath","Thermal Pulse","Blastbomb","Sandspin","Magnetite Cloud","Cimicine Discharge","Bad Breath","Acrid Stream","Maelstrom","Corrosive Ooze","Cursed Sphere","Hecatomb Wave","Mysterious Light","Leafstorm","Reaving Wind","Infrasonics","Ice Break","Cold Wave","Frost Breath","Temporal Shift","Mind Blast","Charged Whisker","Blitzstrahl","Actinic Burst","Radiant Breath","Blank Gaze","Light of Penance","Death Ray","Eyes on Me","Sandspray"}
 }
 
 
@@ -128,7 +129,7 @@ windower.register_event('addon command', function(...)
             local which = args[1]
             local check_spells = spell_lists[which]
             if (which == nil) or (check_spells == nil) then
-                atc(123, 'Please specify a valid spell list to check (need|nice|useless)')
+                atcfs(123, 'Please specify a valid spell list to check (%s)', '|':join(table.keys(spell_lists)))
                 return
             end
             local wf_spells = windower.ffxi.get_spells()
