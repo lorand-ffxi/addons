@@ -2,7 +2,7 @@ _addon.name = 'BLUSets'
 _addon.version = '1.3.1'
 _addon.author = 'Lorand / Nitrous (Shiva)'
 _addon.commands = {'blusets','bs','blu'}
-_addon.lastUpdate = '2016.11.05.1'
+_addon.lastUpdate = '2016.11.05.2'
 
 
 require('lor/lor_utils')
@@ -10,6 +10,12 @@ _libs.lor.req('chat', 'tables', {n='settings',v='2016.10.23.1'})
 _libs.req('tables', 'strings', 'logger', 'sets')
 local res = require('resources')
 local chat = require('chat')
+
+local spell_lists = {
+    useless = {"Pollen","Footkick","Sprout Smack","Wild Oats","Power Attack","Metallic Body","Queasyshroom","Battle Dance","Feather Storm","Head Butt","Healing Breeze","Helldive","Blastbomb","Bludgeon","Blood Drain","Claw Cyclone","Poison Breath","Soporific","Screwdriver","Bomb Toss","Grand Slam","Wild Carrotchan","Caotic Eye","Smite of Rage","Digest","Pinecone Bomb","Jet Stream","Uppercut","Terror Touch","MP Drainkiss","Venom Shell","Stinking Gas","Mandibular Bite","Awful Eye","Blood Saber","Refueling","Self-Destruct","Feather Barrier","Flying Hip Press","Spiral Spin","Death Scissors","Seedspray","1000 Needles","Body Slam","Hydro Shot","Frypan","Spinal Cleave","Voracious Trunk","Enervation","Warm-Up","Hysteric Barrage","Cannonball","Sub-zero Smash","Ram Charge","Mind Blast","Plasma Charge","Vertical Cleave","Plenilune Embrace","Demoralizing Roar","Final Sting","Osmosis","Vapor Spray","Thunder Breath","Atra. Libation"},
+    need = {"Cocoon","Sickle Slash","Blank Gaze","Tail Slap","Magic Fruit","Acrid Stream","Yawn","Saline Coat","Magic Hammer","Regeneration","Fantod","Battery Charge","Empty Thrash","Magic Barrier","Delta Thrust","Whirl of Rage","Dream Flower","Heavy Strike","Occultation","Barbed Crescent","Winds of Promy.","Thrashing Assault","Barrier Tusk","Diffusion Ray","White Wind","Molting Plumage","Sudden Lunge","Nat. Meditation","Glutinous Dart","Paralyzing Triad","Retinal Glare","Carcharian Verve","Erratic Flutter","Subduction","Sinker Drill","Sweeping Gouge","Searing Tempest","Blinding Fulgor","Spectral Floe","Scouring Spate","Anvil Lightning","Silent Storm","Entomb","Tenebral Crush","Mighty Guard"},
+    nice = {"Animating Wail","Quad. Continuum","Blazing Bound","Mortal Ray","Sheep Song","Battle Dance","MP Drainkiss","Sound Blast","Frightful Roar","Uppercut","Memento Mori","Frenetic Rip","Infrasonics","Spinal Cleave","Zephyr Mantle","Disseverment","Diamondhide","Goblin Rush","Amplification","Vanity Dive","Temporal Shift","Evryone. Grudge","Actinic Burst","Quadrastrike","Benthic Typhoon","Thermal Pulse","Palling Salvo","Reaving Wind","Thunderbolt","Embalming Earth","Restoral","Saurian Slide","Plenilune Embrace","Amorphic Spikes","Water Bomb","Regurgitation","Charged Whisker","Rail Cannon"}
+}
 
 
 defaults = {
@@ -93,7 +99,7 @@ windower.register_event('addon command', function(...)
             end
             --atcfs('set1: %s', ', ':join(set1))
             --atcfs('set2: %s', ', ':join(set2))
-        elseif cmd == 'load' then
+        elseif S{'load', 'set'}:contains(cmd) then
             local set_name = get_current_set_name()
             if set_name == nil then
                 last_set_name = last_set_name or 'unknown'
@@ -118,6 +124,42 @@ windower.register_event('addon command', function(...)
             else
                 atc(123, 'Error: list requires an additional argument (sets or spells)')
             end
+        elseif cmd == 'check' then
+            local which = args[1]
+            local check_spells = spell_lists[which]
+            if (which == nil) or (check_spells == nil) then
+                atc(123, 'Please specify a valid spell list to check (need|nice|useless)')
+                return
+            end
+            local wf_spells = windower.ffxi.get_spells()
+            local blu_have = S{}
+            local blu_need = S{}
+            for _, blu_spell in pairs(check_spells) do
+                local spell_name = blu_spell:lower()
+                for id,spell in pairs(res.spells) do
+                    if spell.en:lower() == spell_name then
+                        if wf_spells[id] then
+                            blu_have:add(spell.en)
+                        else
+                            blu_need:add(spell.en)
+                        end
+                    end
+                end
+            end
+            
+            local prefix_map = {nice='Nice to have',need='Necessary'}
+            local prefix = prefix_map[which] or which:ucfirst()
+            atcfs('%s spells learned: %s', prefix, ', ':join(blu_have))
+            atcfs('%s spells needed: %s', prefix, ', ':join(blu_need))
+        elseif cmd == 'learned' then
+            local wf_spells = windower.ffxi.get_spells()
+            local spell_name = ' ':join(args):lower()
+            for id,spell in pairs(res.spells) do
+                if spell.en:lower() == spell_name then
+                    atcfs('%s: %s', spell.en, wf_spells[id])
+                    break
+                end
+            end
         elseif cmd == 'help' then
             local helptext = [[BLUSets - Command List:
             removeall - Unsets all spells.
@@ -132,6 +174,10 @@ windower.register_event('addon command', function(...)
             current -- Lists currently set spells.
             list {sets,<setname>} -- Lists available spell sets, or spells in the given set
             diff <setname1> [<setname2>] -- Compares setname1 to setname2 if provided, or your currently equipped spells
+            check <listname> -- Checks your learned spells against lists published in guides here:
+                              http://www.ffxiah.com/forum/topic/30626/the-beast-within-a-guide-to-blue-mage
+                              https://www.bg-wiki.com/bg/Out_of_the_BLU#Spells_You_Should_Learn
+            learned <spellname> -- Tells you whether or not you've learned the given spell
             help -- Shows this menu.]]
             for _, line in ipairs(helptext:split('\n')) do
                 atcfs(207, '%s%s', line, chat.controls.reset)
