@@ -1,5 +1,6 @@
 *.stackdump
 autolock/*
+autoSynth/data/*
 AutoRA/*
 AutoWS/data/*
 azureSets/Readme.md
@@ -17,6 +18,7 @@ battlemod/README.md
 battlemod/statics.lua
 bluguide/*
 boxdestroyer/*
+camper/data/settings.lua
 cancel/cancel.lua
 chars/*
 ChatLink/*

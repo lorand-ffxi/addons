@@ -1,32 +1,38 @@
 _addon.name = 'autoSynth'
 _addon.author = 'Lorand'
 _addon.commands = {'autoSynth', 'as'}
-_addon.version = '1.4.0'
-_addon.lastUpdate = '2016.10.09'
+_addon.version = '1.5.0'
+_addon.lastUpdate = '2016.11.26'
 
 require('luau')
 require('lor/lor_utils')
 _libs.lor.include_addon_name = true
+_libs.req('texts')
 _libs.lor.req('all')
 
-packets = require('packets')
+local packets = require('packets')
 
-synthesisPossible = false
-baseDelay = 2
-qualities = {[0]='NQ', [1]='Break', [2]='HQ'}
-crystals = {[16]='Water',[17]='Wind',[18]='Fire',[19]='Earth',[20]='Lightning',[21]='Ice',[22]='Light',[23]='Dark'}
-rarr = string.char(129,168)
+local synthesisPossible = false
+local baseDelay = 2.1
+local qualities = {[0]='NQ', [1]='Break', [2]='HQ'}
+local crystals = {[16]='Water',[17]='Wind',[18]='Fire',[19]='Earth',[20]='Lightning',[21]='Ice',[22]='Light',[23]='Dark'}
+local qual_count_keys = {[1]='breaks',[2]='hq'}
+local rarr = string.char(129,168)
 
-compass = {n = -math.pi/2, s = math.pi/2, e = 0, w = math.pi, nw = -math.pi*3/4, ne = -math.pi*1/4, sw = math.pi*3/4, se = math.pi*1/4}
-safe = {dark = 'n', light = 'ne', ice = 'e', wind = 'se', earth = 's', lightning = 'sw', water = 'w', fire = 'nw'}
-risk = {dark = 'ne', light = 'n', ice = 'nw', wind = 'e', earth = 'se', lightning = 's', water = 'sw', fire = 'w'}
+local compass = {n = -math.pi/2, s = math.pi/2, e = 0, w = math.pi, nw = -math.pi*3/4, ne = -math.pi*1/4, sw = math.pi*3/4, se = math.pi*1/4}
+local safe = {dark = 'n', light = 'ne', ice = 'e', wind = 'se', earth = 's', lightning = 'sw', water = 'w', fire = 'nw'}
+local risk = {dark = 'ne', light = 'n', ice = 'nw', wind = 'e', earth = 'se', lightning = 's', water = 'sw', fire = 'w'}
 
-overall = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
-session = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
-req_food = false
-req_supp = false
+local overall = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
+local session = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
+local req_food = false
+local req_supp = false
+local queued = -1
 
-qual_count_keys = {[1]='breaks',[2]='hq'}
+local saved_info = _libs.lor.settings.load('data/saved_info.lua')
+local default_skill_box_settings = {skill_box={pos={x=-400,y=0}, flags={right=true,bottom=false}, text={font='Arial',size=10}}}
+local skill_box_settings = _libs.lor.settings.load('data/settings.lua', default_skill_box_settings).skill_box
+local skill_box
 
 _debug = false
 
@@ -62,7 +68,12 @@ windower.register_event('load', function()
     atc('Commands:')
     atc('//autoSynth start')
     atc('//autoSynth stop')
+    
+    local player = windower.ffxi.get_player()
+    update_current_skill(player)
+    refresh_skill_box(player)
 end)
+
 
 windower.register_event('addon command', function (command,...)
     command = command and command:lower() or 'help'
@@ -71,13 +82,9 @@ windower.register_event('addon command', function (command,...)
     if S{'reload','unload'}:contains(command) then
         windower.send_command('lua %s %s':format(command, _addon.name))
     elseif S{'craft','start','on'}:contains(command) then
-        synthesisPossible = true
-        session = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
-        printStatus()
-        trySynth()
+        start_session()
     elseif S{'stop','end','off'}:contains(command) then
-        synthesisPossible = false
-        printStatus()
+        stop_session()
     elseif S{'require','req'}:contains(command) then
         for _,arg in pairs(args) do
             if S{'food'}:contains(arg) then
@@ -102,6 +109,13 @@ windower.register_event('addon command', function (command,...)
                 atcfs('Unrecognized argument for cancel requirement: %s', arg)
             end
         end
+    elseif S{'make','craft','do','batch'}:contains(command) then
+        if args[1] ~= nil then
+            queued = args[1]
+            start_session()
+        else
+            atcfs('Usage: %s <number>', command)
+        end
     elseif command == 'debug' then
         _debug = not _debug
         atcfs('Debug mode: %s', _debug)
@@ -114,34 +128,6 @@ windower.register_event('addon command', function (command,...)
     end
 end)
 
-function face(args)
-    if args[1] ~= nil then
-        if args[2] ~= nil then
-            if S{'safe', 'nq'}:contains(args[1]) then
-                if safe[args[2]] ~= nil then
-                    windower.ffxi.turn(compass[safe[args[2]]])
-                else
-                    atcfs('Error: invalid element: %s', args[2])
-                end
-            elseif S{'risk', 'hq'}:contains(args[1]) then
-                if risk[args[2]] ~= nil then
-                    windower.ffxi.turn(compass[risk[args[2]]])
-                else
-                    atcfs('Error: invalid element: %s', args[2])
-                end
-            else
-                atcfs('Error: invalid direction type: %s', args[1])
-            end
-        elseif compass[args[1]] ~= nil then
-            windower.ffxi.turn(compass[args[1]])
-        else
-            atcfs('Error: invalid command or too few arguments.')
-        end
-    else
-        atc('Error: too few arguments.')
-    end
-end
-
 function printStatus()
     if not synthesisPossible then
         print_stats(session, 'Session')
@@ -153,15 +139,32 @@ function trySynth()
     check_buffs()
     if synthesisPossible then
         windower.send_command('input /lastsynth')
+        queued = queued - 1
     end
 end
-    
+
+function start_session()
+    synthesisPossible = true
+    session = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0, hqT = {0,0,0}}
+    printStatus()
+    trySynth()
+end
+
+function stop_session(col, msg)
+    if not synthesisPossible then return end
+    synthesisPossible = false
+    queued = -1
+    if msg ~= nil then
+        atc(col, msg)
+    end
+    printStatus()
+end
+
 function check_buffs()
     local active_buffs = S(windower.ffxi.get_player().buffs)
     
     if req_food and (not active_buffs[251]) then
-        synthesisPossible = false
-        atc(123, 'Food wore off - cancelling synthesis')
+        stop_session(123, 'Food wore off - cancelling synthesis')
     end
     
     if req_supp then
@@ -173,9 +176,12 @@ function check_buffs()
             end
         end
         if not has_supp then
-            synthesisPossible = false
-            atc(123, 'Synthesis imagery wore off - cancelling synthesis')
+            stop_session(123, 'Synthesis imagery wore off - cancelling synthesis')
         end
+    end
+    
+    if queued == 0 then
+        stop_session(1, 'Completed batch.')
     end
 end
 
@@ -192,17 +198,21 @@ end
 
 windower.register_event('incoming text', function(original)
     if string.contains(original, 'Synthesis canceled.') then
-        synthesisPossible = false
-        printStatus()
+        stop_session()
     elseif original == 'You must wait longer before repeating that action.' then
         baseDelay = baseDelay + 1
+        if queued > -1 then
+            queued = queued + 1
+        end
         delayedAttempt()
     elseif original == 'You cannot use that command during synthesis.' then
         baseDelay = baseDelay + 2
+        if queued > -1 then
+            queued = queued + 1
+        end
         delayedAttempt()
     elseif original == 'Unable to execute that command. Your inventory is full.' then
-        synthesisPossible = false
-        printStatus()
+        stop_session()
     elseif original:match('%-+ %u%u Synthesis %(.+%) %-+') then --Block BattleMod synth messages
         return true
     elseif original:match('%-+ Break %(.+%) %-+') then
@@ -212,16 +222,88 @@ windower.register_event('incoming text', function(original)
     end
 end)
 
+
+function register_skillup(packetInfo)
+    if S{38,53}:contains(packetInfo.Message) then
+        local skill = res.skills[packetInfo['Param 1']]
+        if skill.category ~= 'Synthesis' then return end
+        local player = windower.ffxi.get_player()
+        if packetInfo.Message == 38 then
+            update_current_skill(player, skill.en:lower(), packetInfo['Param 2'])
+        elseif packetInfo.Message == 53 then
+            update_current_skill(player, skill.en:lower(), nil, packetInfo['Param 2'])
+        end
+        refresh_skill_box(player)
+    end
+end
+
+
+function update_current_skill(player, skill_name, incr, lvl)
+    player = player or windower.ffxi.get_player()
+    local do_save = false
+    if saved_info[player.name] == nil then
+        saved_info[player.name] = {}
+        do_save = true
+    end
+    skill_name = skill_name or saved_info[player.name].last_skillup
+    if skill_name == nil then return end
+    if saved_info[player.name][skill_name] == nil then
+        saved_info[player.name][skill_name] = player.skills[skill_name]
+        do_save = true
+    end
+    if saved_info[player.name].last_skillup ~= skill_name then
+        saved_info[player.name].last_skillup = skill_name
+        do_save = true
+    end
+    if player.skills[skill_name] > saved_info[player.name][skill_name] then
+        saved_info[player.name][skill_name] = player.skills[skill_name]
+        do_save = true
+    end
+    if incr then
+        saved_info[player.name][skill_name] = saved_info[player.name][skill_name] + (incr / 10)
+        do_save = true
+    elseif lvl then
+        if lvl > saved_info[player.name][skill_name] then
+            saved_info[player.name][skill_name] = lvl
+            do_save = true
+        end
+    end
+    if do_save then
+        saved_info:save(true)
+    end
+end
+
+
+function refresh_skill_box(player)
+    if skill_box == nil then
+        skill_box = _libs.texts.new(skill_box_settings)
+    end
+    player = player or windower.ffxi.get_player()
+    if player ~= nil then
+        if saved_info[player.name] ~= nil then
+            local skill_name = saved_info[player.name].last_skillup
+            if skill_name == nil then return end
+            local skill_val = saved_info[player.name][skill_name] or 0
+            skill_box:text('%s: %.1f':format(skill_name, skill_val))
+            skill_box:visible(true)
+        end
+    end
+end
+
+
 windower.register_event('incoming chunk', function(id,data)
     if id == 0x029 then
         local packetInfo = packets.parse('incoming', data)
         local pid = windower.ffxi.get_player().id
-        if pid == packetInfo.Actor and packetInfo.Message == 38 then
-            local amount = packetInfo['Param 2']/10
-            overall.skillups = overall.skillups + amount
-            overall.skillup_count = overall.skillup_count + 1
-            session.skillups = session.skillups + amount
-            session.skillup_count = session.skillup_count + 1
+        if pid == packetInfo.Actor then
+            register_skillup(packetInfo)
+            if packetInfo.Message == 38 then
+                local amount = packetInfo['Param 2']/10
+                overall.skillups = overall.skillups + amount
+                overall.skillup_count = overall.skillup_count + 1
+                session.skillups = session.skillups + amount
+                session.skillup_count = session.skillup_count + 1
+            end
         end
     elseif id == 0x030 then
         local packetInfo = packets.parse('incoming', data)
@@ -295,6 +377,34 @@ function getVanadielTime()
     local vanaSec = (vSec < 10) and '0'..vSec or vSec
 
     return '%s-%s-%s':format(vanaYear, vanaMon, vanaDate)
+end
+
+function face(args)
+    if args[1] ~= nil then
+        if args[2] ~= nil then
+            if S{'safe', 'nq'}:contains(args[1]) then
+                if safe[args[2]] ~= nil then
+                    windower.ffxi.turn(compass[safe[args[2]]])
+                else
+                    atcfs('Error: invalid element: %s', args[2])
+                end
+            elseif S{'risk', 'hq'}:contains(args[1]) then
+                if risk[args[2]] ~= nil then
+                    windower.ffxi.turn(compass[risk[args[2]]])
+                else
+                    atcfs('Error: invalid element: %s', args[2])
+                end
+            else
+                atcfs('Error: invalid direction type: %s', args[1])
+            end
+        elseif compass[args[1]] ~= nil then
+            windower.ffxi.turn(compass[args[1]])
+        else
+            atcfs('Error: invalid command or too few arguments.')
+        end
+    else
+        atc('Error: too few arguments.')
+    end
 end
 
 -----------------------------------------------------------------------------------------------------------
