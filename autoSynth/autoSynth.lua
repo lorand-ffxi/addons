@@ -1,7 +1,7 @@
 _addon.name = 'autoSynth'
 _addon.author = 'Lorand'
 _addon.commands = {'autoSynth', 'as'}
-_addon.version = '1.5.0'
+_addon.version = '1.5.1'
 _addon.lastUpdate = '2016.11.26'
 
 require('luau')
@@ -28,11 +28,14 @@ local session = {skillups = 0, skillup_count = 0, synths = 0, breaks = 0, hq = 0
 local req_food = false
 local req_supp = false
 local queued = -1
+local stop_skill
+local stop_level = -1
 
 local saved_info = _libs.lor.settings.load('data/saved_info.lua')
 local default_skill_box_settings = {skill_box={pos={x=-400,y=0}, flags={right=true,bottom=false}, text={font='Arial',size=10}}}
 local skill_box_settings = _libs.lor.settings.load('data/settings.lua', default_skill_box_settings).skill_box
 local skill_box
+local lc_skills
 
 _debug = false
 
@@ -72,6 +75,11 @@ windower.register_event('load', function()
     local player = windower.ffxi.get_player()
     update_current_skill(player)
     refresh_skill_box(player)
+    
+    lc_skills = {}
+    for _,skill in pairs(res.skills) do
+        lc_skills[skill.en:lower()] = skill
+    end
 end)
 
 
@@ -110,11 +118,28 @@ windower.register_event('addon command', function (command,...)
             end
         end
     elseif S{'make','craft','do','batch'}:contains(command) then
-        if args[1] ~= nil then
-            queued = args[1]
+        if tonumber(args[1]) then
+            queued = tonumber(args[1])
             start_session()
         else
             atcfs('Usage: %s <number>', command)
+        end
+    elseif S{'until','til','level'}:contains(command) then
+        if (args[1] ~= nil) and tonumber(args[2]) then
+            local arg_skill = lc_skills[args[1]:lower()]
+            if arg_skill ~= nil then
+                if arg_skill.category == 'Synthesis' then                
+                    stop_skill = args[1]
+                    stop_level = tonumber(args[2])
+                    start_session()
+                else
+                    atcfs('Invalid skill: %s (only supports crafting skills)', args[1])
+                end
+            else
+                atcfs('Invalid skill: %s', args[1])
+            end
+        else
+            atcfs('Usage: %s <skill> <number>', command)
         end
     elseif command == 'debug' then
         _debug = not _debug
@@ -154,6 +179,8 @@ function stop_session(col, msg)
     if not synthesisPossible then return end
     synthesisPossible = false
     queued = -1
+    stop_skill = nil
+    stop_level = -1
     if msg ~= nil then
         atc(col, msg)
     end
@@ -161,7 +188,8 @@ function stop_session(col, msg)
 end
 
 function check_buffs()
-    local active_buffs = S(windower.ffxi.get_player().buffs)
+    local player = windower.ffxi.get_player()
+    local active_buffs = S(player.buffs)
     
     if req_food and (not active_buffs[251]) then
         stop_session(123, 'Food wore off - cancelling synthesis')
@@ -182,6 +210,10 @@ function check_buffs()
     
     if queued == 0 then
         stop_session(1, 'Completed batch.')
+    elseif stop_level > 0 then
+        if player.skills[stop_skill] >= stop_level then
+            stop_session(1, 'Reached skill goal [%s %s >= %s]':format(stop_skill, player.skills[stop_skill], stop_level))
+        end
     end
 end
 
