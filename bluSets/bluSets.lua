@@ -4,7 +4,6 @@ _addon.author = 'Lorand / Nitrous (Shiva)'
 _addon.commands = {'blusets','bs','blu'}
 _addon.lastUpdate = '2016.11.05.3'
 
-
 require('lor/lor_utils')
 _libs.lor.req('chat', 'tables', {n='settings',v='2016.10.23.1'})
 _libs.req('tables', 'strings', 'logger', 'sets')
@@ -50,7 +49,7 @@ windower.register_event('addon command', function(...)
     if args ~= nil then
         local cmd = table.remove(args,1):lower()
         if S{'reload','unload'}:contains(cmd) then
-            windower.send_command('lua %s %s':format(cmd, _addon.name))
+            windower.send_command(('lua %s %s'):format(cmd, _addon.name))
         elseif cmd == 'removeall' then
             remove_all_spells('trigger')
         elseif cmd == 'add' then
@@ -87,15 +86,15 @@ windower.register_event('addon command', function(...)
             else
                 local set1_only = set1:diff(set2)
                 if table.size(set1_only) > 0 then
-                    atcfs('Only in %s: %s', name1, ', ':join(set1_only))
+                    atcfs('Only in %s: %s', name1, (', '):join(set1_only))
                 end
                 local set2_only = set2:diff(set1)
                 if table.size(set2_only) > 0 then
-                    atcfs('Only in %s: %s', name2, ', ':join(set2_only))
+                    atcfs('Only in %s: %s', name2, (', '):join(set2_only))
                 end
                 local in_both = set1:intersection(set2)
                 if table.size(in_both) > 0 then
-                    atcfs('In both %s and %s: %s', name1, name2, ', ':join(in_both))
+                    atcfs('In both %s and %s: %s', name1, name2, (', '):join(in_both))
                 end
             end
             --atcfs('set1: %s', ', ':join(set1))
@@ -104,7 +103,7 @@ windower.register_event('addon command', function(...)
             local set_name = get_current_set_name()
             if set_name == nil then
                 last_set_name = last_set_name or 'unknown'
-                local new_set_name = '%s_%s':format(last_set_name, os.date('%Y.%m.%d_%H.%M.%S'))
+                local new_set_name = ('%s_%s'):format(last_set_name, os.date('%Y.%m.%d_%H.%M.%S'))
                 save_set(new_set_name)
             end
             if args[1] ~= nil then
@@ -129,7 +128,7 @@ windower.register_event('addon command', function(...)
             local which = args[1]
             local check_spells = spell_lists[which]
             if (which == nil) or (check_spells == nil) then
-                atcfs(123, 'Please specify a valid spell list to check (%s)', '|':join(table.keys(spell_lists)))
+                atcfs(123, 'Please specify a valid spell list to check (%s)', ('|'):join(table.keys(spell_lists)))
                 return
             end
             local wf_spells = windower.ffxi.get_spells()
@@ -150,11 +149,11 @@ windower.register_event('addon command', function(...)
             
             local prefix_map = {nice='Nice to have',need='Necessary'}
             local prefix = prefix_map[which] or which:ucfirst()
-            atcfs('%s spells learned: %s', prefix, ', ':join(blu_have))
-            atcfs('%s spells needed: %s', prefix, ', ':join(blu_need))
+            atcfs('%s spells learned: %s', prefix, (', '):join(blu_have))
+            atcfs('%s spells needed: %s', prefix, (', '):join(blu_need))
         elseif cmd == 'learned' then
             local wf_spells = windower.ffxi.get_spells()
-            local spell_name = ' ':join(args):lower()
+            local spell_name = (' '):join(args):lower()
             for id,spell in pairs(res.spells) do
                 if spell.en:lower() == spell_name then
                     atcfs('%s: %s', spell.en, wf_spells[id])
@@ -262,7 +261,7 @@ function set_spells_from_spellset(spellset, setPhase)
     -- Find empty slot:
     local slotToSetTo
     for i = 1, 20 do
-        local slotName = 'slot%02u':format(i)
+        local slotName = ('slot%02u'):format(i)
         if currentSet[slotName] == nil then
             slotToSetTo = i
             break
@@ -332,7 +331,7 @@ function get_current_spellset()
     -- Transforms them from IDs to lowercase English names
     :map(function(id) return spells[id].english:lower() end)
     -- Transform the keys from numeric x or xx to string 'slot0x' or 'slotxx'
-    :key_map(function(slot) return 'slot%02u':format(slot) end)
+    :key_map(function(slot) return ('slot%02u'):format(slot) end)
 end
 
 function remove_all_spells(trigger)

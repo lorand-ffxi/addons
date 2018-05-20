@@ -55,9 +55,9 @@ function print_stats(stats, header)
             local hq_msgs = {}
             for tier, count in ipairs(stats.hqT) do
                 local tpct, hpct = count/stats.synths*100, count/stats.hq*100
-                hq_msgs[#hq_msgs+1] = 'HQ%s: %d (%.2f%% overall / %.2f%% hq)':format(tier, count, tpct, hpct)
+                hq_msgs[#hq_msgs+1] = ('HQ%s: %d (%.2f%% overall / %.2f%% hq)'):format(tier, count, tpct, hpct)
             end
-            atcfs(' | ':join(hq_msgs))
+            atcfs((' | '):join(hq_msgs))
         end
     else
         atc('No synths performed.')
@@ -88,7 +88,7 @@ windower.register_event('addon command', function (command,...)
     local args = T{...}:map(string.lower)
     
     if S{'reload','unload'}:contains(command) then
-        windower.send_command('lua %s %s':format(command, _addon.name))
+        windower.send_command(('lua %s %s'):format(command, _addon.name))
     elseif S{'craft','start','on'}:contains(command) then
         start_session()
     elseif S{'stop','end','off'}:contains(command) then
@@ -212,7 +212,7 @@ function check_buffs()
         stop_session(1, 'Completed batch.')
     elseif stop_level > 0 then
         if player.skills[stop_skill] >= stop_level then
-            stop_session(1, 'Reached skill goal [%s %s >= %s]':format(stop_skill, player.skills[stop_skill], stop_level))
+            stop_session(1, ('Reached skill goal [%s %s >= %s]'):format(stop_skill, player.skills[stop_skill], stop_level))
         end
     end
 end
@@ -316,7 +316,7 @@ function refresh_skill_box(player)
             local skill_name = saved_info[player.name].last_skillup
             if skill_name == nil then return end
             local skill_val = saved_info[player.name][skill_name] or 0
-            skill_box:text('%s: %.1f':format(skill_name, skill_val))
+            skill_box:text(('%s: %.1f'):format(skill_name, skill_val))
             skill_box:visible(true)
         end
     end
@@ -379,7 +379,7 @@ end)
 function getVtime(rawVtime)
     local m = rawVtime % 60
     local h = (rawVtime - m)/60
-    return '%s:%s%s':format(h, (m < 10 and '0' or ''), m)
+    return ('%s:%s%s'):format(h, (m < 10 and '0' or ''), m)
 end
 
 function getVanadielTime()
@@ -408,7 +408,7 @@ function getVanadielTime()
     local vanaMin = (vMin < 10) and '0'..vMin or vMin
     local vanaSec = (vSec < 10) and '0'..vSec or vSec
 
-    return '%s-%s-%s':format(vanaYear, vanaMon, vanaDate)
+    return ('%s-%s-%s'):format(vanaYear, vanaMon, vanaDate)
 end
 
 function face(args)

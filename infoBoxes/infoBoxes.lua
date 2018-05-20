@@ -132,7 +132,7 @@ windower.register_event('prerender', function()
 		
 		local me = windower.ffxi.get_mob_by_target('me')
 		if me then
-			boxes.speed:updateContents('%+.0f %%':format(100*((me.movement_speed/5)-1)))
+			boxes.speed:updateContents(('%+.0f %%'):format(100*((me.movement_speed/5)-1)))
 		else
 			boxes.speed:hide()
 		end
@@ -154,7 +154,7 @@ windower.register_event('prerender', function()
 				boxes.target:updateContents(target.name)
 			end
 			boxes.targHp:updateContents(target.hpp..'%')
-			boxes.dist:updateContents('%.1f':format(target.distance:sqrt()))
+			boxes.dist:updateContents(('%.1f'):format(target.distance:sqrt()))
 			
 			if (target.is_npc) then
 				lastTarget = target.id
@@ -170,12 +170,12 @@ windower.register_event('prerender', function()
                 local tracked = windower.ffxi.get_mob_by_id(_track.id)
                 if tracked ~= nil then
                     if tracked.hpp > 0 then
-                        boxes.track[tidx]:updateContents('%s is UP!':format(tracked.name))
+                        boxes.track[tidx]:updateContents(('%s is UP!'):format(tracked.name))
                         _track.tod = nil
                     elseif _track.tod == nil then
                         _track.tod = now
                     else
-                        boxes.track[tidx]:updateContents('%s %s':format(os.date('!%H:%M:%S', now - _track.tod), tracked.name))
+                        boxes.track[tidx]:updateContents(('%s %s'):format(os.date('!%H:%M:%S', now - _track.tod), tracked.name))
                     end
                 end
             end

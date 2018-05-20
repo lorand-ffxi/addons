@@ -104,10 +104,10 @@ end
 windower.register_event('addon command', function (command,...)
 	command = command and command:lower() or 'help'
 	local args = T{...}
-    local arg_str = windower.convert_auto_trans(' ':join(args))
+    local arg_str = windower.convert_auto_trans((' '):join(args))
 	
     if S{'reload','unload'}:contains(command) then
-        windower.send_command('lua %s %s':format(command, _addon.name))
+        windower.send_command(('lua %s %s'):format(command, _addon.name))
 	elseif S{'enable','on','start'}:contains(command) then
 		enabled = true
 		print_status()
@@ -118,7 +118,7 @@ windower.register_event('addon command', function (command,...)
 		enabled = not enabled
 		print_status()
 	elseif S{'set','use','ws'}:contains(command) then
-        ws_cmd = '/ws "%s" <t>':format(arg_str)
+        ws_cmd = ('/ws "%s" <t>'):format(arg_str)
         save_settings()
 		print_status()
 	elseif command == 'hp' then
@@ -232,7 +232,7 @@ windower.register_event('prerender', function()
                         araDelayed = araDelayed + 1
                     else
                         if hp_gt < mob.hpp and mob.hpp < hp_lt then
-                            windower.send_command('input %s':format(ws_cmd))
+                            windower.send_command(('input %s'):format(ws_cmd))
                         end
                         araDelayed = 0
                         if useAutoRA then

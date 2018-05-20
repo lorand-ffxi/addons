@@ -54,13 +54,13 @@ windower.register_event('addon command', function(command,...)
     local args = {...}
 	
 	if command == 'reload' then
-		windower.send_command('lua unload %s; lua load %s':format(_addon.name, _addon.name))
+		windower.send_command(('lua unload %s; lua load %s'):format(_addon.name, _addon.name))
 	elseif command == 'unload' then
-		windower.send_command('lua unload %s':format(_addon.name))
+		windower.send_command(('lua unload %s'):format(_addon.name))
     elseif command == 'find' then
-        find_mob(" ":join(args), true)
+        find_mob((" "):join(args), true)
     elseif command == 'stop_find' then
-        find_mob(" ":join(args), false)
+        find_mob((" "):join(args), false)
     elseif command == 'track' then
         track_mob(args[1])
     elseif command == 'untrack' then
@@ -72,7 +72,7 @@ windower.register_event('addon command', function(command,...)
             atc(123, 'Invalid arg for untrack')
         end
     elseif command == 'list' then
-        pprint(comp('mob.id, mob.name for _,mob in windower.ffxi.get_mob_array()'))
+        pprint(pycomp('mob.id, mob.name for _,mob in windower.ffxi.get_mob_array()'))
 	else
 		atc(0, 'Error: Unable to parse valid command')
 	end
@@ -208,19 +208,19 @@ windower.register_event('prerender', function()
                             settings.zones[zone][_track.id].tod = now
                             settings:save(true)
                         end
-                        mob_dist = ' (%.1f)':format(tracked.distance:sqrt())
+                        mob_dist = (' (%.1f)'):format(tracked.distance:sqrt())
                     end
                 end
                 
                 local mob_name = _track.name or '[Unknown]'
                 if mob_up then
-                    boxes[tidx]:text('%s is UP! %s':format(mob_name, mob_dist))
+                    boxes[tidx]:text(('%s is UP! %s'):format(mob_name, mob_dist))
                 else
                     local dtime = '--:--:--'
                     if _track.tod ~= nil then
                         dtime = os.date('!%H:%M:%S', now - _track.tod)
                     end
-                    boxes[tidx]:text('%s %s%s':format(dtime, mob_name, mob_dist))
+                    boxes[tidx]:text(('%s %s%s'):format(dtime, mob_name, mob_dist))
                 end
                 boxes[tidx]:show()
             end
